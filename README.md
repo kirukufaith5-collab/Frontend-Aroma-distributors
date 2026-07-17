@@ -23,7 +23,7 @@ This platform allows farmers to easily log their fresh harvests, while the main 
 The project is structured as a monorepo with completely separate frontend and backend folders to ensure clean, decoupled development.
 
 ```text
-Aromas-distributors-app/                 # Main root repository
+Aromas-distributors-app/                
 │
 ├── backend/                    # --- FLASK BACKEND API ---
 │   ├── app/                    # Main python application code
