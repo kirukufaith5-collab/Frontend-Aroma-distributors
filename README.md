@@ -1,4 +1,4 @@
-# Aromas distributors - B2B Vegetable Supply Chain Platform
+# Aromas distributors - B2B Product Supply Chain Platform
 
 A streamlined B2B farm-to-table supply chain application that connects local vegetable farmers with wholesale buyers like restaurants and grocery stores. 
 
