@@ -18,7 +18,7 @@ This platform allows farmers to easily log their fresh harvests, while the main 
 
 ---
 
-## 📂 Project Architecture
+## Project Architecture
 
 The project is structured as a monorepo with completely separate frontend and backend folders to ensure clean, decoupled development.
 
