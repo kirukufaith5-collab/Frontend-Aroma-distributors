@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import API from "../services/api";
-import { Sidebar } from "../components/Sidebar.js";
-import { Status } from "../components/Status.jsx";
+import { Sidebar } from "../components/Sidebar.jsx";
+import { Status } from "../components/Status";
 import "./AdminDashboard.css";
 
 export const AdminDashboard = () => {
