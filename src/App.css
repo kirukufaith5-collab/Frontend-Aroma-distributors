@@ -97,7 +97,7 @@
   border-radius: 9999px;
 }
 
-/* --- STATUS BADGES --- */
+/* --- STATUS --- */
 .badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
@@ -121,4 +121,101 @@
 .badge-rejected, .badge-closed {
   background-color: #FEE2E2;
   color: #991B1B;
+}
+/* --- NAVBAR STYLES --- */
+.navbar-container {
+  background-color: #19321D;
+  color: #FFFFFF;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #1C1917;
+}
+
+.navbar-brand {
+  font-size: 1.125rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.05em;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-username {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #A8A29E;
+  text-transform: uppercase;
+}
+
+.navbar-logout-btn {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #D6D3D1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.navbar-logout-btn:hover {
+  color: #FFFFFF;
+}
+
+/* --- REUSABLE TABLE STYLES --- */
+.table-container {
+  border: 1.5px solid #1C1917;
+  background-color: #F4F3EF;
+  overflow-x: auto;
+}
+
+.custom-table {
+  width: 100%;
+  text-align: left;
+  font-family: monospace;
+  font-size: 0.75rem;
+  border-collapse: collapse;
+}
+
+.custom-table-head {
+  background-color: #EBEADF;
+  border-bottom: 1.5px solid #1C1917;
+  color: #57534E;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.custom-table-th {
+  padding: 0.75rem;
+  border-right: 1px solid #D6D3D1;
+}
+
+.custom-table-th:last-child {
+  border-right: none;
+}
+
+.custom-table-td {
+  padding: 0.75rem;
+  border-right: 1px solid #D6D3D1;
+  border-bottom: 1px solid #D6D3D1;
+}
+
+.custom-table-td:last-child {
+  border-right: none;
+}
+
+.custom-table-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #78716C;
+  font-family: monospace;
+  font-size: 0.75rem;
 }
