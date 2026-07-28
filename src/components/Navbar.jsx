@@ -1,21 +1,27 @@
 import React from 'react';
-import ".components/App.css";
+import "../App.css"; // Imports basic styling for the navigation bar
 
-export const Navbar = ({ title = 'Aroma Distributors', user = null }) => {
+// A component that displays the top bar with project title and user info
+export default function Navbar({ title = 'Aroma Distributors', user }) {
+  
+  // Log out function to clear session and redirect back to login page
   const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/login';
+    localStorage.clear(); // Remove stored user data/tokens
+    window.location.href = '/login'; // Redirect browser to login route
+    //Window.location.href is used to force the browser to redirect to a new page.
   };
 
   return (
     <header className="navbar-container">
+      {/* Brand logo & app title */}
       <div className="navbar-brand">
-        <span>🌱</span>
-        <span>{title}</span>
+        🌱 {title}
       </div>
 
+      {/* User profile & Logout button */}
       <div className="navbar-user-info">
-        {user && user.username && (
+        {/* Only display username and role if a user object exists */}
+        {user?.username && (
           <span className="navbar-username">
             [{user.role}] {user.username}
           </span>
@@ -26,5 +32,4 @@ export const Navbar = ({ title = 'Aroma Distributors', user = null }) => {
       </div>
     </header>
   );
-};
-export default Navbar;
+}

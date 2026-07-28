@@ -123,9 +123,9 @@ export function AdminDashboard() {
   );
 }
 
-// ==========================================
+
 // SUB-COMPONENT 1: RECEIVE PRODUCTS VIEW
-// ==========================================
+
 function ReceiveProductsView({ batches, onUpdateStatus }) {
   return (
     <div>
@@ -184,9 +184,9 @@ function ReceiveProductsView({ batches, onUpdateStatus }) {
   );
 }
 
-// ==========================================
+
 // SUB-COMPONENT 2: ALL ORDERS VIEW
-// ==========================================
+
 function AllOrdersView({ orders, onCloseOrder }) {
   return (
     <div>
@@ -209,7 +209,7 @@ function AllOrdersView({ orders, onCloseOrder }) {
             {orders.map((order) => (
               <tr key={order.id}>
                 <td className="table-td-bold">{order.client_name}</td>
-                <td className="table-td">{order.vegetable_type}</td>
+                <td className="table-td">{order.product_type}</td>
                 <td className="table-td">{order.quantity} kg</td>
                 <td className="table-td">₱{order.unit_price}</td>
                 <td className="table-td">
@@ -300,8 +300,8 @@ function CreateOrderView({ onOrderCreated }) {
         <div className="form-group">
           <label className="form-label">Vegetable Type</label>
           <select
-            name="vegetable_type"
-            value={formData.vegetable_type}
+            name="product_type"
+            value={formData.product_type}
             onChange={handleChange}
             className="form-input"
           >
