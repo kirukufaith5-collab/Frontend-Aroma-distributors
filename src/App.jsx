@@ -1,33 +1,28 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from "./pages/Login.jsx";
-import { AdminDashboard } from "./pages/AdminDashboard.jsx";
-import { FarmerDashboard } from "./pages/FarmerDashboard.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import {FarmerDashboard }from "./pages/FarmerDashboard.jsx";
 
 // Helper component to protect routes based on authentication & role
-const ProtectedRoute = ({ Farmer, allowedRole }) => {
+const ProtectedRoute = ({ children, allowedRole }) => {
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  if (!token) {
+  if (!token || user.role !== allowedRole) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRole && user.role !== allowedRole) {
-    // Redirect to their respective authorized view if accessing wrong route
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/farmer'} replace />;
-  }
-
-  return Farmer;
+  return children;
 };
 
 export function App() {
   return (
-    <>
+    <Router>
       <Routes>
         {/* Public Login Route */}
-        <Route path="/login" element={<Login />} />
-
+        <Route path="/login" element={<Login/>} />
+        <Route path="/farmer" element={<FarmerDashboard />} />
         {/* Protected Admin Routes */}
         <Route
           path="/admin"
@@ -51,7 +46,7 @@ export function App() {
         {/* Default Fallback Redirect */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </>
+    </Router>
   );
 }
 

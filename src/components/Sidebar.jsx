@@ -1,47 +1,58 @@
 import React from 'react';
 
-// Displays key stats (metrics) and navigation options on the side panel
-export default function Sidebar({ title, metrics = [], navItems = [], activeTab, onTabSelect }) {
+// Receive props passed down from FarmerDashboard
+const Sidebar = ({ title, metrics, activeTab, onTabSelect }) => {
   return (
-    <aside className="sidebar-container">
-      
-      {/* Top Section: Metrics / Summary Cards */}
-      <div>
-        <h3 className="sidebar-title">{title}</h3>
-        <div className="metrics-container">
-          {/* Loop through metrics array and draw a card for each metric */}
-          {metrics.map((item, index) => (
-            <div 
-              key={index} 
-              className={item.highlight ? 'metric-card-highlight' : 'metric-card'}
-            >
-              <div className="metric-label">{item.label}</div>
-              <div className="metric-value">{item.value}</div>
-            </div>
-          ))}
+    <aside className="sidebar">
+      {/* Farm Name / Title */}
+      <h2>{title}</h2>
+
+      {/* Metrics Summary Box */}
+      <div className="metrics">
+        <div className="metric-card">
+          <small>{metrics[0]?.label}</small>
+          <p>{metrics[0]?.value}</p>
+        </div>
+        <div className="metric-card">
+          <small>{metrics[1]?.label}</small>
+          <p>{metrics[1]?.value}</p>
+        </div>
+        <div className="metric-card">
+          <small>{metrics[2]?.label}</small>
+          <p>{metrics[2]?.value}</p>
         </div>
       </div>
 
-      {/* Bottom Section: Page Navigation Links */}
-      <nav>
-        <h3 className="sidebar-title">NAVIGATION</h3>
-        <div className="nav-menu">
-          {/* Loop through navItems array to draw buttons */}
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onTabSelect(item.id)} // Tells parent component which tab was clicked
-              className={activeTab === item.id ? 'nav-item-active' : 'nav-item'}
-            >
-              <span>{item.icon} {item.label}</span>
-              
-              {/* Optional badge count (e.g. pending items indicator) */}
-              {item.badge > 0 && <span className="nav-badge">{item.badge}</span>}
-            </button>
-          ))}
-        </div>
-      </nav>
+      {/* Navigation Buttons */}
+      <nav className="nav-menu">
+        
+        {/* Button 1: Log Harvest */}
+        <button
+          className={`nav-btn ${activeTab === 'harvest' ? 'active' : ''}`}
+          onClick={() => onTabSelect('harvest')}
+        >
+          🌾 Log Harvest
+        </button>
 
+        {/* Button 2: Harvest Log History */}
+        <button
+          className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => onTabSelect('history')}
+        >
+         Harvest Log
+        </button>
+
+        {/* Button 3: Payout Statements */}
+        <button
+          className={`nav-btn ${activeTab === 'payouts' ? 'active' : ''}`}
+          onClick={() => onTabSelect('payouts')}
+        >
+        Payout Statements
+        </button>
+
+      </nav>
     </aside>
   );
-}
+};
+
+export default Sidebar;
