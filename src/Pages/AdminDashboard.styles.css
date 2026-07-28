@@ -1,0 +1,218 @@
+/* --- LAYOUT & MAIN CONTAINERS --- */
+.admin-container {
+  min-height: 100vh;
+  background-color: #F4F3EF;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.admin-header {
+  background-color: #19321D;
+  color: #FFFFFF;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-brand {
+  font-size: 1.125rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.admin-logout-btn {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #D6D3D1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.admin-logout-btn:hover {
+  color: #FFFFFF;
+}
+
+.admin-content-layout {
+  flex: 1;
+  display: flex;
+}
+
+.admin-main-panel {
+  flex: 1;
+  padding: 2rem;
+}
+
+/* --- TYPOGRAPHY & TITLES --- */
+.view-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #1C1917;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.25rem 0;
+}
+
+.view-subtitle {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #78716C;
+  margin: 0 0 1rem 0;
+}
+
+/* --- TABLES & CONTAINERS --- */
+.table-wrapper {
+  border: 1.5px solid #1C1917;
+  background-color: #F4F3EF;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  text-align: left;
+  font-family: monospace;
+  font-size: 0.75rem;
+  border-collapse: collapse;
+}
+
+.table-head {
+  background-color: #EBEADF;
+  border-bottom: 1.5px solid #1C1917;
+  color: #57534E;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.table-th {
+  padding: 0.75rem;
+  border-right: 1px solid #D6D3D1;
+}
+
+.table-th:last-child {
+  border-right: none;
+}
+
+.table-td {
+  padding: 0.75rem;
+  border-right: 1px solid #D6D3D1;
+  border-bottom: 1px solid #D6D3D1;
+}
+
+.table-td:last-child {
+  border-right: none;
+}
+
+.table-td-bold {
+  padding: 0.75rem;
+  border-right: 1px solid #D6D3D1;
+  border-bottom: 1px solid #D6D3D1;
+  font-weight: 700;
+  color: #1C1917;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* --- BUTTONS --- */
+.btn-approve {
+  background-color: #629916;
+  color: #FFFFFF;
+  padding: 0.25rem 0.5rem;
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-approve:hover {
+  background-color: #528112;
+}
+
+.btn-reject {
+  background-color: #B91C1C;
+  color: #FFFFFF;
+  padding: 0.25rem 0.5rem;
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-reject:hover {
+  background-color: #991B1B;
+}
+
+.btn-submit {
+  background-color: #19321D;
+  color: #FFFFFF;
+  font-weight: 700;
+  padding: 0.625rem 1.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+  background-color: #122415;
+}
+
+/* --- FORMS & INPUTS --- */
+.form-card {
+  border: 1.5px solid #1C1917;
+  padding: 1.5rem;
+  background-color: #F4F3EF;
+  font-family: monospace;
+  font-size: 0.75rem;
+  max-width: 36rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #78716C;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem;
+  background-color: #FFFFFF;
+  border: 1.5px solid #1C1917;
+  font-family: monospace;
+  font-size: 0.75rem;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: 2px solid #19321D;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
