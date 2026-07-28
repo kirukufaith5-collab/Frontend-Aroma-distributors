@@ -1,218 +1,382 @@
-/* --- LAYOUT & MAIN CONTAINERS --- */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Roboto:wght@400;500;700&display=swap');
+
+/* Page Layout */
 .admin-container {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f1f0e9;
   min-height: 100vh;
-  background-color: #F4F3EF;
-  display: flex;
-  flex-direction: column;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #111111;
 }
 
+/* Header Bar */
 .admin-header {
-  background-color: #19321D;
-  color: #FFFFFF;
-  padding: 0.75rem 1.5rem;
+  background-color: #173b1e;
+  color: white;
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .admin-brand {
-  font-size: 1.125rem;
-  font-weight: 900;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  letter-spacing: 0.05em;
+  gap: 10px;
 }
 
-.admin-logout-btn {
-  font-family: monospace;
-  font-size: 0.75rem;
-  color: #D6D3D1;
+.admin-badge {
+  border: 1px solid #a0b2a4;
+  color: #a0b2a4;
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.btn-logout {
   background: transparent;
   border: none;
+  color: #a0b2a4;
   cursor: pointer;
-  transition: color 0.2s;
+  font-size: 13px;
+  font-weight: bold;
 }
 
-.admin-logout-btn:hover {
-  color: #FFFFFF;
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 55px);
 }
 
-.admin-content-layout {
-  flex: 1;
+/* Sidebar Styling */
+.admin-sidebar {
+  border-right: 2px solid #111111;
+  padding: 20px 15px;
+}
+
+.summary-card {
+  margin-bottom: 25px;
+}
+
+.summary-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: #888888;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.summary-row {
   display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #444444;
 }
 
-.admin-main-panel {
-  flex: 1;
-  padding: 2rem;
+.text-orange {
+  color: #d9534f;
 }
 
-/* --- TYPOGRAPHY & TITLES --- */
-.view-title {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: #1C1917;
-  text-transform: uppercase;
-  letter-spacing: -0.025em;
-  margin: 0 0 0.25rem 0;
-}
-
-.view-subtitle {
-  font-family: monospace;
-  font-size: 0.75rem;
-  color: #78716C;
-  margin: 0 0 1rem 0;
-}
-
-/* --- TABLES & CONTAINERS --- */
-.table-wrapper {
-  border: 1.5px solid #1C1917;
-  background-color: #F4F3EF;
-  overflow-x: auto;
-}
-
-.data-table {
-  width: 100%;
-  text-align: left;
-  font-family: monospace;
-  font-size: 0.75rem;
-  border-collapse: collapse;
-}
-
-.table-head {
-  background-color: #EBEADF;
-  border-bottom: 1.5px solid #1C1917;
-  color: #57534E;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.table-th {
-  padding: 0.75rem;
-  border-right: 1px solid #D6D3D1;
-}
-
-.table-th:last-child {
-  border-right: none;
-}
-
-.table-td {
-  padding: 0.75rem;
-  border-right: 1px solid #D6D3D1;
-  border-bottom: 1px solid #D6D3D1;
-}
-
-.table-td:last-child {
-  border-right: none;
-}
-
-.table-td-bold {
-  padding: 0.75rem;
-  border-right: 1px solid #D6D3D1;
-  border-bottom: 1px solid #D6D3D1;
-  font-weight: 700;
-  color: #1C1917;
-}
-
-.table-actions {
+/* Sidebar Nav Buttons */
+.admin-nav {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* --- BUTTONS --- */
-.btn-approve {
-  background-color: #629916;
-  color: #FFFFFF;
-  padding: 0.25rem 0.5rem;
-  font-weight: 700;
-  font-size: 0.625rem;
-  text-transform: uppercase;
+.nav-item {
+  background: transparent;
   border: none;
+  text-align: left;
+  padding: 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #333333;
 }
 
-.btn-approve:hover {
-  background-color: #528112;
+.nav-item.active {
+  background-color: #173b1e;
+  color: #ffffff;
+}
+
+.counter-badge {
+  background-color: #d99b00;
+  color: black;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+/* Main Panel */
+.admin-main {
+  padding: 30px 40px;
+}
+
+.view-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  margin: 0;
+}
+
+.view-desc {
+  color: #666666;
+  font-size: 14px;
+  margin-top: 5px;
+  margin-bottom: 25px;
+}
+
+/* Data Table Styles */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #111111;
+  background-color: #f8f7f2;
+}
+
+.admin-table th {
+  border-bottom: 2px solid #111111;
+  padding: 12px;
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #555555;
+}
+
+.admin-table td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px;
+  font-size: 13px;
+}
+
+/* Status Tag Badges */
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.status-badge.approved {
+  background-color: #e2f0d9;
+  color: #385723;
+  border: 1px solid #b4c6e7;
+}
+
+.status-badge.pending {
+  background-color: #fff2cc;
+  color: #b25900;
+  border: 1px solid #ffe699;
+}
+
+.status-badge.rejected {
+  background-color: #fce4d6;
+  color: #c65911;
+  border: 1px solid #f8cbad;
+}
+
+/* Approve / Reject Buttons */
+.action-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-approve {
+  background-color: #1e7e34;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .btn-reject {
-  background-color: #B91C1C;
-  color: #FFFFFF;
-  padding: 0.25rem 0.5rem;
-  font-weight: 700;
-  font-size: 0.625rem;
-  text-transform: uppercase;
+  background-color: #bd2130;
+  color: white;
   border: none;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.btn-reject:hover {
-  background-color: #991B1B;
+.no-action {
+  color: #999999;
+}
+/* Orders Tab - Top Stat Banner */
+.orders-summary-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 2px solid #111111;
+  background-color: #f8f7f2;
+  margin-bottom: 25px;
 }
 
-.btn-submit {
-  background-color: #19321D;
-  color: #FFFFFF;
-  font-weight: 700;
-  padding: 0.625rem 1.5rem;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.summary-col {
+  padding: 15px 20px;
+  border-right: 1px solid #111111;
 }
 
-.btn-submit:hover {
-  background-color: #122415;
+.summary-col:last-child {
+  border-right: none;
 }
 
-/* --- FORMS & INPUTS --- */
-.form-card {
-  border: 1.5px solid #1C1917;
-  padding: 1.5rem;
-  background-color: #F4F3EF;
-  font-family: monospace;
-  font-size: 0.75rem;
-  max-width: 36rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-label {
+.summary-col small {
+  font-size: 11px;
+  font-weight: bold;
+  color: #777777;
+  letter-spacing: 1px;
   display: block;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: #78716C;
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
 }
 
-.form-input {
-  width: 100%;
-  padding: 0.625rem;
-  background-color: #FFFFFF;
-  border: 1.5px solid #1C1917;
-  font-family: monospace;
-  font-size: 0.75rem;
+.summary-col h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  margin: 5px 0 0 0;
+}
+
+/* Order Status Tags */
+.order-status {
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+}
+
+.order-status.active {
+  background-color: #e6f0ff;
+  color: #004085;
+  border: 1px solid #b8daff;
+}
+
+.order-status.closed {
+  background-color: #f0f0f0;
+  color: #6c757d;
+  border: 1px solid #d6d8db;
+}
+
+/* Close Order Black Button */
+.btn-close-order {
+  background-color: #111111;
+  color: #ffffff;
+  border: none;
+  padding: 6px 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+.btn-close-order:hover {
+  background-color: #333333;
+}
+
+.settled-text {
+  color: #888888;
+  font-size: 13px;
+}
+/* Import Google Fonts for matching typography
+
+/* Main Page Header & Description */
+.view-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 0.5px;
+  color: #111111;
+}
+
+.view-desc {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  color: #666666;
+  margin-top: 4px;
+  margin-bottom: 24px;
+}
+
+/* Form Container Box (Black 2px outer border) */
+.create-order-card {
+  border: 2px solid #111111;
+  background-color: #f8f7f2;
+  padding: 24px;
+  max-width: 480px;
   box-sizing: border-box;
 }
 
-.form-input:focus {
-  outline: 2px solid #19321D;
+/* Individual Field Groups */
+.form-group {
+  margin-bottom: 20px;
 }
 
-.form-grid-2 {
+/* Small Monospace Form Labels */
+.form-group label {
+  display: block;
+  font-family: 'Roboto', monospace, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  color: #555555;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* Input Fields & Select Dropdowns */
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #111111;
+  background-color: #f1f0e9;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  color: #111111;
+  box-sizing: border-box;
+  outline: none;
+  border-radius: 0; /* Keeps sharp, squared edges */
+}
+
+/* Change border color when typing */
+.form-input:focus {
+  border-color: #173b1e;
+}
+
+/* Side-by-Side Grid for Quantity and Unit Price */
+.form-grid-two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 16px;
+}
+
+/* Dark Green Create Order Button */
+.btn-create-order {
+  background-color: #173b1e; /* Deep forest green */
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+/* Subtle hover effect for button */
+.btn-create-order:hover {
+  background-color: #23492a;
 }

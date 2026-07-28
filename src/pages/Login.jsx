@@ -3,82 +3,130 @@ import API from '../services/api.js';
 import './Login.css';
 
 export const Login = () => {
-  const [formData, setFormData] = useState({ username: '', password: '', role: 'farmer' });
-  const [error, setError] = useState('');
+  // State for Farmer Login Form
+  const [farmerAccount, setFarmerAccount] = useState('');
+  const [farmerPassword, setFarmerPassword] = useState('');
 
-  const handleSubmit = async (e) => {
+  // State for Admin Login Form
+  const [adminUsername, setAdminUsername] = useState('aroma_admin');
+  const [adminPassword, setAdminPassword] = useState('');
+
+  // Handle Farmer Login Form Submit
+  const handleFarmerLogin = (e) => {
     e.preventDefault();
-    setError('');
-
-    try {
-      const res = await API.post('/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-
-      // Redirect based on user role
-      if (res.data.user.role === 'admin') {
-        window.location.href = '/admin';
-      } else {
+    API.post('/login', { account: farmerAccount, password: farmerPassword })
+      .then((res) => {
+        // Save user info and go to farmer dashboard
+        localStorage.setItem('user', JSON.stringify(res.data.user || { id: 2, farm_name: farmerAccount }));
         window.location.href = '/farmer';
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check credentials.');
-    }
+      })
+      .catch(() => alert('Farmer login failed! Check credentials.'));
+  };
+
+  // Handle Admin Login Form Submit
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    API.post('/admin/login', { username: adminUsername, password: adminPassword })
+      .then((res) => {
+        // Save admin info and go to admin page
+        localStorage.setItem('admin', JSON.stringify(res.data || { role: 'admin' }));
+        window.location.href = '/admin';
+      })
+      .catch(() => alert('Admin login failed! Check credentials.'));
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1 className="login-title">🌱 Aroma Distributors</h1>
-        <p className="login-subtitle">DISTRIBUTORS PORTAL SYSTEM</p>
+    <div className="login-page">
+      {/* Top Header Bar */}
+      <header className="brand-header">
+        <div className="brand-title">
+          <span className="leaf-icon">🌱</span>
+          <span className="brand-name">Aroma-Distributors</span>
+        </div>
+        <span className="tag-badge">SUPPLY CHAIN PLATFORM</span>
+      </header>
 
-        {error && (
-          <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #B91C1C', color: '#991B1B', padding: '0.5rem', fontSize: '0.75rem', marginBottom: '1rem' }}>
-            {error}
-          </div>
-        )}
+      {/* Main Hero Banner Header */}
+      <section className="hero-banner">
+        <h1>FROM FIELD<br />TO TABLE.</h1>
+      </section>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label className="form-label">User Role</label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className="form-input"
-            >
-              <option value="farmer">Farmer Account</option>
-              <option value="admin">Operations Admin</option>
-            </select>
-          </div>
+      {/* Two Column Section for Farmer & Admin Login */}
+      <div className="login-layout">
+        
+        {/* LEFT COLUMN: Farmer Login (Light Background) */}
+        <div className="farmer-login-card">
+          <h2><span className="icon"></span> FARMER LOGIN</h2>
+          <p className="card-subtitle">
+            Access your batch submissions, delivery status, and payment records.
+          </p>
 
-          <div>
-            <label className="form-label">Username</label>
-            <input
-              required
-              type="text"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              placeholder="e.g. Maria Santos"
-              className="form-input"
-            />
-          </div>
+          <form onSubmit={handleFarmerLogin}>
+            <div className="form-group">
+              <label>SELECT ACCOUNT</label>
+              <select 
+                value={farmerAccount} 
+                onChange={(e) => setFarmerAccount(e.target.value)}
+                required
+              >
+                <option value="">— Choose your account —</option>
+                <option value="Green Valley Farm">Green Valley Farm</option>
+                <option value="Aroma Produce">Aroma Produce</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="form-label">Password</label>
-            <input
-              required
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="••••••••"
-              className="form-input"
-            />
-          </div>
+            <div className="form-group">
+              <label>PASSWORD</label>
+              <input 
+                type="password" 
+                placeholder="Enter password" 
+                value={farmerPassword}
+                onChange={(e) => setFarmerPassword(e.target.value)}
+                required
+              />
+            </div>
 
-          <button type="submit" className="btn-submit" style={{ width: '100%', marginTop: '0.5rem' }}>
-            SIGN IN
-          </button>
-        </form>
+            <button type="submit" className="btn-green">
+              SIGN IN &rarr;
+            </button>
+          </form>
+        </div>
+
+        {/* RIGHT COLUMN: Admin Panel (Dark Green Background) */}
+        <div className="admin-login-card">
+          <h2><span className="icon"></span> ADMIN CONTROL PANEL</h2>
+          <p className="card-subtitle">
+            Aroma Distributors master dashboard — manage orders, approve products, and oversee the supply chain.
+          </p>
+
+          <form onSubmit={handleAdminLogin}>
+            <div className="form-group">
+              <label>ADMIN USERNAME</label>
+              <input 
+                type="text" 
+                value={adminUsername} 
+                onChange={(e) => setAdminUsername(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>PASSWORD</label>
+              <input 
+                type="password" 
+                placeholder="Enter admin password" 
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn-bright-green">
+              ACCESS DASHBOARD &rarr;
+            </button>
+          </form>
+        </div>
+
       </div>
     </div>
   );

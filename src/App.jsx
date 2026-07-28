@@ -1,52 +1,17 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Login } from "./pages/Login.jsx";
-import AdminDashboard from "./pages/AdminDashboard.jsx";
-import {FarmerDashboard }from "./pages/FarmerDashboard.jsx";
+import { Routes, Route } from 'react-router-dom';
+import { Login } from './pages/Login';
+import { FarmerDashboard } from './pages/FarmerDashboard';
+import { AdminDashboard } from './pages/AdminDashboard'; // 👈 IMPORT THIS
 
-// Helper component to protect routes based on authentication & role
-const ProtectedRoute = ({ children, allowedRole }) => {
-  const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-  if (!token || user.role !== allowedRole) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
-
-export function App() {
+function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Login Route */}
-        <Route path="/login" element={<Login/>} />
-        <Route path="/farmer" element={<FarmerDashboard />} />
-        {/* Protected Admin Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Protected Farmer Routes */}
-        <Route
-          path="/farmer"
-          element={
-            <ProtectedRoute allowedRole="farmer">
-              <FarmerDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Default Fallback Redirect */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/farmer" element={<FarmerDashboard />} />
+      <Route path="/admin" element={<AdminDashboard />} /> {/* 👈 DEFINE ROUTE */}
+    </Routes>
   );
 }
 
