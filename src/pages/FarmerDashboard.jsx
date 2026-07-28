@@ -5,42 +5,73 @@ import { Status } from "../components/Status";
 import "./FarmerDashboard.css";
 
 export const FarmerDashboard = () => {
+  // State for switching tabs
   const [activeTab, setActiveTab] = useState('harvest');
+
+  // State for storing API data
   const [batches, setBatches] = useState([]);
   const [payoutsData, setPayoutsData] = useState({ payouts: [], summary: { total_outstanding: 0, total_paid: 0 } });
   
+  // States for the form inputs
+  const [vegetableType, setVegetableType] = useState('Pechay');
+  const [weight, setWeight] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // Get logged in user details from browser storage
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const farmerId = user.id || 2;
 
+  // Run these functions once when the component loads
   useEffect(() => {
     fetchBatches();
     fetchPayouts();
   }, []);
 
-  const fetchBatches = async () => {
-    try {
-      const res = await API.get(`/farmer/${farmerId}/batches`);
-      setBatches(res.data);
-    } catch (err) {
-      console.error('Failed to fetch harvest batches:', err);
-    }
+  // Fetch submitted harvest batches from backend
+  const fetchBatches = () => {
+    API.get(`/farmer/${farmerId}/batches`)
+      .then(res => setBatches(res.data))
+      .catch(err => console.log('Error loading batches:', err));
   };
 
-  const fetchPayouts = async () => {
-    try {
-      const res = await API.get(`/farmer/${farmerId}/payouts`);
-      setPayoutsData(res.data);
-    } catch (err) {
-      console.error('Failed to fetch payouts:', err);
-    }
+  // Fetch payout information from backend
+  const fetchPayouts = () => {
+    API.get(`/farmer/${farmerId}/payouts`)
+      .then(res => setPayoutsData(res.data))
+      .catch(err => console.log('Error loading payouts:', err));
   };
 
+  // Submit the form data to backend
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newHarvest = { farmer_id: farmerId, vegetable_type: vegetableType, weight, notes };
+    
+    API.post('/farmer/batches', newHarvest)
+      .then(() => {
+        alert('Harvest submitted!');
+        // Reset form inputs
+        setWeight('');
+        setNotes('');
+        // Refresh the list after adding new batch
+        fetchBatches();
+      })
+      .catch(() => alert('Failed to log harvest.'));
+  };
+
+  // Function to log out user
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = '/login';
+  };
+
+  // Data to display in sidebar summary
   const metrics = [
     { label: 'Batches Logged', value: batches.length },
-    { label: 'Outstanding Payout', value: `₱${payoutsData.summary.total_outstanding.toLocaleString()}` },
-    { label: 'Total Paid', value: `₱${payoutsData.summary.total_paid.toLocaleString()}` },
+    { label: 'Outstanding Payout', value: `₱${payoutsData.summary.total_outstanding}` },
+    { label: 'Total Paid', value: `₱${payoutsData.summary.total_paid}` },
   ];
 
+  // Navigation items for the sidebar
   const navItems = [
     { id: 'harvest', label: 'Log Harvest', icon: '🌾' },
     { id: 'history', label: 'Harvest Log', icon: '📋' },
@@ -49,14 +80,14 @@ export const FarmerDashboard = () => {
 
   return (
     <div className="farmer-container">
+      {/* Header bar */}
       <header className="farmer-header">
         <span className="farmer-brand">🌱 Aroma-distributors — FARMER PORTAL</span>
-        <button onClick={() => { localStorage.clear(); window.location.href = '/login'; }} className="admin-logout-btn">
-          ↳ LOGOUT
-        </button>
+        <button onClick={handleLogout} className="admin-logout-btn">↳ LOGOUT</button>
       </header>
 
       <div className="farmer-content-layout">
+        {/* Sidebar menu */}
         <Sidebar
           title={user.farm_name || 'FARM SUMMARY'}
           metrics={metrics}
@@ -65,142 +96,119 @@ export const FarmerDashboard = () => {
           onTabSelect={setActiveTab}
         />
 
+        {/* Main Content Area */}
         <main className="farmer-main-panel">
-          {activeTab === 'harvest' && <LogHarvestView farmerId={farmerId} onBatchCreated={fetchBatches} />}
-          {activeTab === 'history' && <HarvestHistoryView batches={batches} />}
-          {activeTab === 'payouts' && <PayoutsView data={payoutsData} />}
+          
+          {/* TAB 1: LOG HARVEST FORM */}
+          {activeTab === 'harvest' && (
+            <div>
+              <h2 className="view-title">LOG HARVEST BATCH</h2>
+              <form onSubmit={handleSubmit} className="form-card">
+                
+                {/* Crop Type Input */}
+                <div className="form-group">
+                  <label className="form-label">Crop Type</label>
+                  <select value={vegetableType} onChange={(e) => setVegetableType(e.target.value)} className="form-input">
+                    <option value="Tomatoes">Tomatoes</option>
+                    <option value="Potatoes">Potatoes</option>
+                    <option value="Cabbage">Cabbage</option>
+                  </select>
+                </div>
+
+                {/* Weight Input */}
+                <div className="form-group">
+                  <label className="form-label">Total Weight (KG)</label>
+                  <input
+                    required
+                    type="number"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="e.g. 25.5"
+                    className="form-input"
+                  />
+                </div>
+
+                {/* Notes Input */}
+                <div className="form-group">
+                  <label className="form-label">Notes</label>
+                  <textarea
+                    rows="3"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Freshly picked this morning"
+                    className="form-input"
+                  />
+                </div>
+
+                <button type="submit" className="btn-submit">Submit Harvest</button>
+              </form>
+            </div>
+          )}
+
+          {/* TAB 2: HARVEST HISTORY TABLE */}
+          {activeTab === 'history' && (
+            <div>
+              <h2 className="view-title">HARVEST LOG</h2>
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Product</th>
+                      <th>Weight</th>
+                      <th>Notes</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Loop through all submitted batches */}
+                    {batches.map((b) => (
+                      <tr key={b.id}>
+                        <td>{b.created_at}</td>
+                        <td>{b.product_type}</td>
+                        <td>{b.weight} kg</td>
+                        <td>{b.notes}</td>
+                        <td><Status status={b.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: PAYOUT STATEMENTS TABLE */}
+          {activeTab === 'payouts' && (
+            <div>
+              <h2 className="view-title">PAYOUT STATEMENTS</h2>
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Issued Date</th>
+                      <th>Description</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Loop through all payout records */}
+                    {payoutsData.payouts.map((p) => (
+                      <tr key={p.id}>
+                        <td>{p.issued_at}</td>
+                        <td>{p.description}</td>
+                        <td>₱{p.amount}</td>
+                        <td><Status status={p.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
     </div>
   );
 };
-
-// Sub-view: Submit Harvest Form
-const LogHarvestView = ({ farmerId, onBatchCreated }) => {
-  const [formData, setFormData] = useState({ vegetable_type: 'Pechay', weight: '', notes: '' });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await API.post('/farmer/batches', { ...formData, farmer_id: farmerId });
-      alert('Harvest batch submitted for quality inspection!');
-      setFormData({ Product_type: 'Tomatoes', weight: '', notes: '' });
-      onBatchCreated();
-    } catch (err) {
-      alert('Failed to log harvest batch.');
-    }
-  };
-
-  return (
-    <div>
-      <h2 className="view-title">LOG HARVEST BATCH</h2>
-      <p className="view-subtitle">Enter daily crop yields to submit for collection.</p>
-
-      <form onSubmit={handleSubmit} className="form-card">
-        <div className="form-group">
-          <label className="form-label">Product_Type</label>
-          <select
-            value={formData.vegetable_type}
-            onChange={(e) => setFormData({ ...formData, vegetable_type: e.target.value })}
-            className="form-input"
-          >
-            <option value="Tomatoes">Pechay</option>
-            <option value="Potatoes">Kangkong</option>
-            <option value="Cabbages">Sitaw</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Total Weight (KG)</label>
-          <input
-            required
-            type="number"
-            value={formData.weight}
-            onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-            placeholder="e.g. 25.5"
-            className="form-input"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Notes / Quality Remarks</label>
-          <textarea
-            rows="3"
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            placeholder="e.g. Freshly picked this morning"
-            className="form-input"
-          />
-        </div>
-
-        <div>
-          <button type="submit" className="btn-submit">Submit Harvest</button>
-        </div>
-      </form>
-    </div>
-  );
-};
-
-// Sub-view: Batch History
-const HarvestHistoryView = ({ batches }) => (
-  <div>
-    <h2 className="view-title">HARVEST LOG</h2>
-    <p className="view-subtitle">History of all submitted crop batches and approval statuses.</p>
-
-    <div className="table-wrapper">
-      <table className="data-table">
-        <thead className="table-head">
-          <tr>
-            <th className="table-th">Date</th>
-            <th className="table-th">Product</th>
-            <th className="table-th">Weight</th>
-            <th className="table-th">Notes</th>
-            <th className="table-th">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {batches.map((b) => (
-            <tr key={b.id}>
-              <td className="table-td">{b.created_at}</td>
-              <td className="table-td-bold">{b.vegetable_type}</td>
-              <td className="table-td">{b.weight} kg</td>
-              <td className="table-td">{b.notes}</td>
-              <td className="table-td"><Status status={b.status} /></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
-
-// Sub-view: Payouts & Bills
-const PayoutsView = ({ data }) => (
-  <div>
-    <h2 className="view-title">PAYOUT STATEMENTS</h2>
-    <p className="view-subtitle">Statements generated for approved harvest collections.</p>
-
-    <div className="table-wrapper">
-      <table className="data-table">
-        <thead className="table-head">
-          <tr>
-            <th className="table-th">Issued Date</th>
-            <th className="table-th">Description</th>
-            <th className="table-th">Amount</th>
-            <th className="table-th">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.payouts.map((p) => (
-            <tr key={p.id}>
-              <td className="table-td">{p.issued_at}</td>
-              <td className="table-td-bold">{p.description}</td>
-              <td className="table-td-bold">₱{p.amount.toLocaleString()}</td>
-              <td className="table-td"><Status status={p.status} /></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-);

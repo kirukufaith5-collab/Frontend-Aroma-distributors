@@ -1,71 +1,65 @@
 import React, { useState, useEffect } from "react";
 import API from "../services/api";
 import Sidebar from "../components/Sidebar.jsx";
-import Status from "../components/Status.jsx"; // Imported correctly
+import Status from "../components/Status.jsx";
 
-export function AdminDashboard() {
-  // --- 1. STATE VARIABLES ---
-  // State holds data that changes in our app
-  const [activeTab, setActiveTab] = useState("receive"); // Controls which page view is shown
-  const [batches, setBatches] = useState([]); // Stores product batches from farmers
-  const [orders, setOrders] = useState([]); // Stores client orders
+export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState("receive");
+  const [batches, setBatches] = useState([]);
+  const [orders, setOrders] = useState([]);
 
-  // --- 2. FETCH DATA WHEN COMPONENT LOADS ---
+  // Fetch batches and orders when page loads
   useEffect(() => {
     fetchBatches();
     fetchOrders();
-  }, []); // The empty [] means "run this only once when the page loads"
+  }, []);
 
-  // Function to load batches from the server
   const fetchBatches = async () => {
     try {
-      const response = await API.get("/admin/batches");
-      setBatches(response.data);
-    } catch (error) {
-      console.error("Error loading batches:", error);
+      const res = await API.get("/admin/batches");
+      setBatches(res.data);
+    } catch (err) {
+      console.error("Failed to load batches", err);
     }
   };
 
-  // Function to load orders from the server
   const fetchOrders = async () => {
     try {
-      const response = await API.get("/admin/orders");
-      setOrders(response.data);
-    } catch (error) {
-      console.error("Error loading orders:", error);
+      const res = await API.get("/admin/orders");
+      setOrders(res.data);
+    } catch (err) {
+      console.error("Failed to load orders", err);
     }
   };
 
-  // --- 3. EVENT HANDLERS ---
-  // Change batch status (Approve or Reject)
-  const handleUpdateBatchStatus = async (batchId, newStatus) => {
+  // Update status for a batch (Approve/Reject)
+  const handleUpdateBatchStatus = async (id, newStatus) => {
     try {
-      await API.patch(`/admin/batches/${batchId}`, { status: newStatus });
-      fetchBatches(); // Reload batches to show the updated status
-    } catch (error) {
+      await API.patch(`/admin/batches/${id}`, { status: newStatus });
+      fetchBatches();
+    } catch (err) {
       alert("Failed to update batch status.");
     }
   };
 
-  // Close an existing order
-  const handleCloseOrder = async (orderId) => {
+  // Close an active order
+  const handleCloseOrder = async (id) => {
     try {
-      await API.patch(`/admin/orders/${orderId}/close`);
-      fetchOrders(); // Reload orders to show updated status
-    } catch (error) {
+      await API.patch(`/admin/orders/${id}/close`);
+      fetchOrders();
+    } catch (err) {
       alert("Failed to close order.");
     }
   };
 
-  // Log out user
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = "/login";
   };
 
-  // --- 4. CALCULATE METRICS FOR SIDEBAR ---
-  const pendingCount = batches.filter((batch) => batch.status === "PENDING").length;
-  const activeOrdersCount = orders.filter((order) => order.status === "ACTIVE").length;
+  // Calculate sidebar numbers
+  const pendingCount = batches.filter((b) => b.status === "PENDING").length;
+  const activeOrdersCount = orders.filter((o) => o.status === "ACTIVE").length;
 
   const metrics = [
     { label: "Pending approvals", value: pendingCount, highlight: pendingCount > 0 },
@@ -80,18 +74,13 @@ export function AdminDashboard() {
     { id: "create", label: "Create Order" },
   ];
 
-  // --- 5. RENDER THE INTERFACE ---
   return (
     <div className="admin-container">
-      {/* Top Header */}
       <header className="admin-header">
         <span className="admin-brand">🌱 Aroma-distributors</span>
-        <button onClick={handleLogout} className="admin-logout-btn">
-          ↳ LOGOUT
-        </button>
+        <button onClick={handleLogout} className="admin-logout-btn">↳ LOGOUT</button>
       </header>
 
-      {/* Main Layout */}
       <div className="admin-content-layout">
         <Sidebar
           title="OPERATIONS SUMMARY"
@@ -101,19 +90,13 @@ export function AdminDashboard() {
           onTabSelect={setActiveTab}
         />
 
-        {/* Dynamic Content Area based on selected Tab */}
         <main className="admin-main-panel">
           {activeTab === "receive" && (
-            <ReceiveProductsView
-              batches={batches}
-              onUpdateStatus={handleUpdateBatchStatus}
-            />
+            <ReceiveProductsView batches={batches} onUpdateStatus={handleUpdateBatchStatus} />
           )}
-
           {activeTab === "orders" && (
             <AllOrdersView orders={orders} onCloseOrder={handleCloseOrder} />
           )}
-
           {activeTab === "create" && (
             <CreateOrderView onOrderCreated={fetchOrders} />
           )}
@@ -123,9 +106,7 @@ export function AdminDashboard() {
   );
 }
 
-
-// SUB-COMPONENT 1: RECEIVE PRODUCTS VIEW
-
+// Tab 1: Receive & Approve Farmer Batches
 function ReceiveProductsView({ batches, onUpdateStatus }) {
   return (
     <div>
@@ -149,25 +130,18 @@ function ReceiveProductsView({ batches, onUpdateStatus }) {
               <tr key={batch.id}>
                 <td className="table-td">{batch.created_at}</td>
                 <td className="table-td-bold">{batch.farmer_name}</td>
-                <td className="table-td-bold">{batch.vegetable_type}</td>
+                <td className="table-td-bold">{batch.product_type}</td>
                 <td className="table-td">{batch.weight} kg</td>
                 <td className="table-td">
-                  {/* Fixed: Used imported Status component */}
                   <Status status={batch.status} />
                 </td>
                 <td className="table-td">
                   {batch.status === "PENDING" ? (
                     <div className="table-actions">
-                      <button
-                        onClick={() => onUpdateStatus(batch.id, "APPROVED")}
-                        className="btn-approve"
-                      >
+                      <button onClick={() => onUpdateStatus(batch.id, "APPROVED")} className="btn-approve">
                         ✓ APPROVE
                       </button>
-                      <button
-                        onClick={() => onUpdateStatus(batch.id, "REJECTED")}
-                        className="btn-reject"
-                      >
+                      <button onClick={() => onUpdateStatus(batch.id, "REJECTED")} className="btn-reject">
                         ✖ REJECT
                       </button>
                     </div>
@@ -184,9 +158,7 @@ function ReceiveProductsView({ batches, onUpdateStatus }) {
   );
 }
 
-
-// SUB-COMPONENT 2: ALL ORDERS VIEW
-
+// Tab 2: View All Client Orders
 function AllOrdersView({ orders, onCloseOrder }) {
   return (
     <div>
@@ -217,10 +189,7 @@ function AllOrdersView({ orders, onCloseOrder }) {
                 </td>
                 <td className="table-td">
                   {order.status === "ACTIVE" ? (
-                    <button
-                      onClick={() => onCloseOrder(order.id)}
-                      className="btn-reject"
-                    >
+                    <button onClick={() => onCloseOrder(order.id)} className="btn-reject">
                       Close Order
                     </button>
                   ) : (
@@ -236,11 +205,8 @@ function AllOrdersView({ orders, onCloseOrder }) {
   );
 }
 
-// ==========================================
-// SUB-COMPONENT 3: CREATE ORDER VIEW
-// ==========================================
+// Tab 3: Create New Client Order
 function CreateOrderView({ onOrderCreated }) {
-  // Form input values stored in local state
   const [formData, setFormData] = useState({
     client_name: "",
     vegetable_type: "Tomatoes",
@@ -248,32 +214,14 @@ function CreateOrderView({ onOrderCreated }) {
     unit_price: "",
   });
 
-  // Helper to update individual input fields easily
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  // Submit form data to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await API.post("/admin/orders", formData);
       alert("Order created successfully!");
-
-      // Reset form fields
-      setFormData({
-        client_name: "",
-        vegetable_type: "Tomatoes",
-        quantity: "",
-        unit_price: "",
-      });
-
-      onOrderCreated(); // Call parent function to refresh orders list
-    } catch (error) {
+      setFormData({ client_name: "", vegetable_type: "Tomatoes", quantity: "", unit_price: "" });
+      onOrderCreated();
+    } catch (err) {
       alert("Failed to save order to database.");
     }
   };
@@ -289,9 +237,8 @@ function CreateOrderView({ onOrderCreated }) {
           <input
             required
             type="text"
-            name="client_name"
             value={formData.client_name}
-            onChange={handleChange}
+            onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
             placeholder="e.g. Fresh Mart Supermarket"
             className="form-input"
           />
@@ -300,9 +247,8 @@ function CreateOrderView({ onOrderCreated }) {
         <div className="form-group">
           <label className="form-label">Vegetable Type</label>
           <select
-            name="product_type"
-            value={formData.product_type}
-            onChange={handleChange}
+            value={formData.vegetable_type}
+            onChange={(e) => setFormData({ ...formData, vegetable_type: e.target.value })}
             className="form-input"
           >
             <option value="Tomatoes">Tomatoes</option>
@@ -317,9 +263,8 @@ function CreateOrderView({ onOrderCreated }) {
             <input
               required
               type="number"
-              name="quantity"
               value={formData.quantity}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
               placeholder="e.g. 100"
               className="form-input"
             />
@@ -330,9 +275,8 @@ function CreateOrderView({ onOrderCreated }) {
             <input
               required
               type="number"
-              name="unit_price"
               value={formData.unit_price}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
               placeholder="e.g. 45"
               className="form-input"
             />
@@ -348,5 +292,3 @@ function CreateOrderView({ onOrderCreated }) {
     </div>
   );
 }
-
-export default AdminDashboard;
