@@ -5,7 +5,7 @@ import { AdminDashboard } from "./pages/AdminDashboard.jsx";
 import { FarmerDashboard } from "./pages/FarmerDashboard.jsx";
 
 // Helper component to protect routes based on authentication & role
-const ProtectedRoute = ({ children, allowedRole }) => {
+const ProtectedRoute = ({ Farmer, allowedRole }) => {
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children, allowedRole }) => {
     return <Navigate to={user.role === 'admin' ? '/admin' : '/farmer'} replace />;
   }
 
-  return children;
+  return Farmer;
 };
 
 export function App() {
