@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Login } from './pages/Login';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { FarmerDashboard } from './pages/FarmerDashboard';
+import { Login } from "./pages/Login.jsx";
+import { AdminDashboard } from "./pages/AdminDashboard.jsx";
+import { FarmerDashboard } from "./pages/FarmerDashboard.jsx";
 
 // Helper component to protect routes based on authentication & role
 const ProtectedRoute = ({ children, allowedRole }) => {

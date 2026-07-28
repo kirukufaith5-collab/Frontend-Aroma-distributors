@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import API from '../services/api';
-import { Sidebar } from '../components/Sidebarjsx';
-import { Status } from '../components/Status.jsx';
-import './FarmerDashboard.css';
+import API from '../services/api.js';
+import { Sidebar } from "../components/Sidebar.js";
+import { Status } from "../components/Status.js";
+import "./FarmerDashboard.css";
 
 export const FarmerDashboard = () => {
   const [activeTab, setActiveTab] = useState('harvest');

@@ -1,5 +1,5 @@
 import React from 'react';
-import './Components.App.css';
+import './components.App.css';
 
 export const Status= ({ status }) => {
   const normalizedStatus = status ? status.toUpperCase() : 'PENDING';

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import API from '../services/api';
-import { Sidebar } from '../components/Sidebar.jsx';
-import { Status } from '../components/Status.jsx';
-import './AdminDashboard.css';
+import API from "../services/api";
+import { Sidebar } from "../components/Sidebar.js";
+import { Status } from "../components/Status.jsx";
+import "./AdminDashboard.css";
 
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('receive');
