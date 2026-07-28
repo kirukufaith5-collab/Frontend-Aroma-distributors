@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api.js';
-/*import { Sidebar } from "../components/Sidebar.jsx";*/
+import Sidebar from "../components/Sidebar.jsx";
 import { Status } from "../components/Status";
 import "./FarmerDashboard.css";
 

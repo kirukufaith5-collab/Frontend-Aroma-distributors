@@ -1,5 +1,5 @@
 import React from 'react';
-import './App.css';
+import ".components/App.css";
 
 export const Navbar = ({ title = 'Aroma Distributors', user = null }) => {
   const handleLogout = () => {
@@ -27,3 +27,4 @@ export const Navbar = ({ title = 'Aroma Distributors', user = null }) => {
     </header>
   );
 };
+export default Navbar;

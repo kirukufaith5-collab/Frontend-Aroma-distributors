@@ -38,3 +38,4 @@ export const Table = ({ columns = [], data = [], emptyMessage = 'No records foun
     </div>
   );
 };
+export default Table;

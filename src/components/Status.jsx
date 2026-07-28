@@ -1,5 +1,5 @@
 import React from 'react';
-/*import './App.css';*/
+import "../App.css";
 
 export const Status= ({ status }) => {
   const normalizedStatus = status ? status.toUpperCase() : 'PENDING';
@@ -19,3 +19,4 @@ export const Status= ({ status }) => {
     </span>
   );
 };
+export default Status;

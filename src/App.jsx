@@ -23,7 +23,7 @@ const ProtectedRoute = ({ Farmer, allowedRole }) => {
 
 export function App() {
   return (
-    <Router>
+    <>
       <Routes>
         {/* Public Login Route */}
         <Route path="/login" element={<Login />} />
@@ -51,7 +51,7 @@ export function App() {
         {/* Default Fallback Redirect */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 
