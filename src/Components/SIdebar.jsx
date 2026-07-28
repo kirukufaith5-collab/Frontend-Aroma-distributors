@@ -1,5 +1,5 @@
 import React from 'react';
-import './Components.css';
+import './Components.App.css';
 
 export const Sidebar = ({ title, metrics, navItems, activeTab, onTabSelect }) => {
   return (
