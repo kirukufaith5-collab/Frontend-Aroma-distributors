@@ -102,7 +102,7 @@ export const FarmerDashboard = () => {
     <div className="farmer-container">
       {/* Header bar */}
       <header className="farmer-header">
-        <span className="farmer-brand">🌱 FINE AROMAS — FARMER PORTAL</span>
+        <span className="farmer-brand">🌱 Aromas-Distributors— Farmer Portal</span>
         <button onClick={handleLogout} className="admin-logout-btn">[→ LOGOUT</button>
       </header>
 

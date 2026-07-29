@@ -4,7 +4,7 @@ import './AdminDashboard.css';
 
 export const AdminDashboard = () => {
   // Navigation tab state ('receive', 'orders', 'create')
-  const [activeTab, setActiveTab] = useState('orders'); // Defaulted to 'orders' to match screenshot
+  const [activeTab, setActiveTab] = useState('orders'); 
 
   // Tab 1: Sample data for Farmer Batches
   const [batches, setBatches] = useState([
@@ -15,7 +15,7 @@ export const AdminDashboard = () => {
     { id: 5, date: '2026-07-12', farmer: 'Timothy Kalila', product: 'Carrot', weight: '35 kg', notes: 'Below minimum grade', status: 'REJECTED' }
   ]);
 
-  // Tab 2: Sample data for Client Orders (Matching the image)
+  //  Sample data for Client Orders 
   const [orders, setOrders] = useState([
     { id: '01', date: '2026-07-08', client: 'Fresh Mart Supermarket', product: 'Tomatoes', qty: 120, unitPrice: 45, totalValue: 5400, status: 'ACTIVE' },
     { id: '02', date: '2026-07-11', client: 'Metro Garden Restaurant', product: 'Potatoes', qty: 80, unitPrice: 38, totalValue: 3040, status: 'ACTIVE' },
@@ -25,7 +25,7 @@ export const AdminDashboard = () => {
 
   // Tab 3: Form state for creating client order
   const [clientName, setClientName] = useState('');
-  const [productType, setProductType] = useState('Pechay');
+  const [productType, setProductType] = useState('Tomatoes');
   const [quantity, setQuantity] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
 
