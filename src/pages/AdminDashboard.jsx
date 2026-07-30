@@ -192,7 +192,7 @@ export const AdminDashboard = () => {
             </div>
           )}
 
-          {/* TAB 2: ALL ORDERS (Matching Image) */}
+          /* TAB 2: ALL ORDE*?R
           {activeTab === 'orders' && (
             <div>
               <h1 className="view-header">ALL ORDERS</h1>
