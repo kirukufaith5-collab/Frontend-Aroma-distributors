@@ -1,14 +1,13 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-// Create the Auth Context
+// Create the authentication context
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // State to store the user object and authentication status
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // When the app first loads, check if user details exist in localStorage
+  // Read saved session on initial app load
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
@@ -19,14 +18,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Helper function to log in
+  // Helper login action
   const login = (userData, token) => {
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
     setUser(userData);
   };
 
-  // Helper function to log out
+  // Helper logout action
   const logout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
@@ -35,7 +34,6 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {/* Don't render app until we check localStorage */}
       {!loading && children}
     </AuthContext.Provider>
   );

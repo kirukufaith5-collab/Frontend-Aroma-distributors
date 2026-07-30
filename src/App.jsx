@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-// Import Pages / Views
+// Import Page Components
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
@@ -12,11 +12,14 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminOrders } from './pages/AdminOrders';
 import { AdminClients } from './pages/AdminClients';
 
-// Simple ProtectedRoute wrapper to guard private pages
+/**
+ * ProtectedRoute Component
+ * Guards private client-side routes.
+ * If no token exists in localStorage, redirects to /login.
+ */
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   
-  // If no JWT token is stored, redirect to login page
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -27,15 +30,20 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Routes>
-      // PUBLIC ROUTES (3)
+      {/* ---------------------------------------------------- */}
+      {/* PUBLIC ROUTES (Unprotected)                          */}
+      {/* ---------------------------------------------------- */}
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      //AUTH-PROTECTED ROUTES 
-    // 1. Farmer Main Dashboard 
+      {/* ---------------------------------------------------- */}
+      {/* AUTH-PROTECTED ROUTES (5 Required)                   */}
+      {/* ---------------------------------------------------- */}
+      
+      {/* 1. Farmer Main Dashboard */}
       <Route 
         path="/farmer" 
         element={
@@ -45,7 +53,7 @@ function App() {
         } 
       />
 
-      //2. Farmer Batches List & Management 
+      {/* 2. Farmer Batches List & Management */}
       <Route 
         path="/farmer/batches" 
         element={
@@ -55,7 +63,7 @@ function App() {
         } 
       />
 
-      // 3. Admin Main Dashboard 
+      {/* 3. Admin Main Dashboard */}
       <Route 
         path="/admin" 
         element={
@@ -65,7 +73,7 @@ function App() {
         } 
       />
 
-      // 4. Admin Orders Management 
+      {/* 4. Admin Orders Management */}
       <Route 
         path="/admin/orders" 
         element={
@@ -75,7 +83,7 @@ function App() {
         } 
       />
 
-      // 5. Admin Clients Management 
+      {/* 5. Admin Clients Management */}
       <Route 
         path="/admin/clients" 
         element={
@@ -84,6 +92,9 @@ function App() {
           </ProtectedRoute>
         } 
       />
+
+      {/* Fallback route for invalid/unknown paths */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

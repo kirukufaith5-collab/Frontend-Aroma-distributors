@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../services/api.js';
-import './Login.css';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -38,8 +37,8 @@ export const Login = () => {
     <div className="login-page">
       {/* Top Header Bar */}
       <header className="brand-header">
-        <div className="brand-title">
-          <span className="leaf-icon">🌱</span>
+        <div className="navbar-brand">
+          <span>🌱</span>
           <span className="brand-name">Aroma-Distributors</span>
         </div>
         <span className="tag-badge">SUPPLY CHAIN PLATFORM</span>
@@ -68,6 +67,7 @@ export const Login = () => {
                 value={form.farmerEmail} 
                 onChange={handleChange}
                 required 
+                className="form-input"
               />
             </div>
 
@@ -80,6 +80,7 @@ export const Login = () => {
                 value={form.farmerPassword}
                 onChange={handleChange}
                 required 
+                className="form-input"
               />
             </div>
 
@@ -94,7 +95,7 @@ export const Login = () => {
         {/* ADMIN LOGIN CARD */}
         <div className="admin-login-card">
           <h2>ADMIN CONTROL PANEL</h2>
-          <p className="card-subtitle">Aroma Distributors master dashboard — manage orders and oversee payouts.</p>
+          <p className="card-subtitle admin-sub">Aroma Distributors master dashboard — manage orders and oversee payouts.</p>
 
           <form onSubmit={(e) => handleAuth(e, '/auth/admin-login', { email: form.adminEmail, password: form.adminPassword }, '/admin')}>
             <div className="form-group">

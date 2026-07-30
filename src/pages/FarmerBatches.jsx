@@ -29,7 +29,7 @@ export function FarmerBatches() {
       {/* Header and Back Link */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h2>🌾 My Product Batches</h2>
+          <h2> My Product Batches</h2>
           <p style={{ color: '#666', margin: '5px 0 0 0' }}>Overview of all logged produce for {user.name || user.farm_name || 'Farmer'}</p>
         </div>
         <Link to="/farmer" style={{ textDecoration: 'none', color: '#27ae60', fontWeight: 'bold' }}>

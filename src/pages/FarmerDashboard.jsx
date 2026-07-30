@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import API from '../services/api.js';
 import Sidebar from "../components/Sidebar.jsx";
 import Status from "../components/Status.jsx";
-import "./FarmerDashboard.css";
 
 export const FarmerDashboard = () => {
   const navigate = useNavigate();
@@ -68,7 +67,7 @@ export const FarmerDashboard = () => {
       {/* Top Navigation Bar */}
       <header className="farmer-header">
         <span className="farmer-brand">🌱 Aroma Distributors — Farmer Portal</span>
-        <button onClick={handleLogout} className="admin-logout-btn">[→ LOGOUT</button>
+        <button onClick={handleLogout} className="btn-logout">[→ LOGOUT]</button>
       </header>
 
       <div className="farmer-content-layout">
@@ -86,55 +85,61 @@ export const FarmerDashboard = () => {
           {/* TAB 1: LOG HARVEST FORM */}
           {activeTab === 'harvest' && (
             <div>
-              <h2 className="view-title">LOG HARVEST BATCH</h2>
-              <form onSubmit={handleSubmit} className="form-card">
-                <div className="form-group">
-                  <label className="form-label">PRODUCT TYPE</label>
-                  <select 
-                    value={formData.productType} 
-                    onChange={e => setFormData({ ...formData, productType: e.target.value })} 
-                    className="form-input"
-                  >
-                    <option value="Tomatoes">Tomatoes</option>
-                    <option value="Potatoes">Potatoes</option>
-                    <option value="Cabbage">Cabbage</option>
-                    <option value="Onions">Onions</option>
-                  </select>
-                </div>
+              <h1 className="view-title">LOG HARVEST BATCH</h1>
+              <p className="view-desc">Record a new harvest submission to send to distributors.</p>
+              
+              <div className="form-card">
+                <form onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label className="form-label">PRODUCT TYPE</label>
+                    <select 
+                      value={formData.productType} 
+                      onChange={e => setFormData({ ...formData, productType: e.target.value })} 
+                      className="form-input"
+                    >
+                      <option value="Tomatoes">Tomatoes</option>
+                      <option value="Potatoes">Potatoes</option>
+                      <option value="Cabbage">Cabbage</option>
+                      <option value="Onions">Onions</option>
+                    </select>
+                  </div>
 
-                <div className="form-group">
-                  <label className="form-label">TOTAL WEIGHT (KG)</label>
-                  <input
-                    required
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g. 25.5"
-                    value={formData.weight}
-                    onChange={e => setFormData({ ...formData, weight: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
+                  <div className="form-group">
+                    <label className="form-label">TOTAL WEIGHT (KG)</label>
+                    <input
+                      required
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. 25.5"
+                      value={formData.weight}
+                      onChange={e => setFormData({ ...formData, weight: e.target.value })}
+                      className="form-input"
+                    />
+                  </div>
 
-                <div className="form-group">
-                  <label className="form-label">NOTES</label>
-                  <textarea
-                    rows="3"
-                    placeholder="Freshly picked this morning"
-                    value={formData.notes}
-                    onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
+                  <div className="form-group">
+                    <label className="form-label">NOTES</label>
+                    <textarea
+                      rows="3"
+                      placeholder="Freshly picked this morning"
+                      value={formData.notes}
+                      onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                      className="form-input"
+                    />
+                  </div>
 
-                <button type="submit" className="btn-submit">Submit Harvest →</button>
-              </form>
+                  <button type="submit" className="btn-submit">Submit Harvest →</button>
+                </form>
+              </div>
             </div>
           )}
 
           {/* TAB 2: HARVEST LOG TABLE */}
           {activeTab === 'history' && (
             <div>
-              <h2 className="view-title">HARVEST LOG</h2>
+              <h1 className="view-title">HARVEST LOG</h1>
+              <p className="view-desc">Review your logged batch history and current approval status.</p>
+              
               <div className="table-wrapper">
                 <table className="data-table">
                   <thead>
@@ -159,7 +164,9 @@ export const FarmerDashboard = () => {
           {/* TAB 3: PAYOUT STATEMENTS */}
           {activeTab === 'payouts' && (
             <div>
-              <h2 className="view-title">PAYOUT STATEMENTS</h2>
+              <h1 className="view-title">PAYOUT STATEMENTS</h1>
+              <p className="view-desc">View financial records and completed transaction receipts.</p>
+              
               <div className="table-wrapper">
                 <table className="data-table">
                   <thead>
