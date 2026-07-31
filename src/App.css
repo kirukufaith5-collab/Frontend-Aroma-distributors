@@ -488,3 +488,58 @@ body {
   text-transform: uppercase;
   cursor: pointer;
 }
+/* --- LOGIN PAGE REFINEMENTS --- */
+.farmer-login-card {
+  background-color: #EBEADF;
+  color: #1C1917 !important; /* Forces dark text on cream background */
+  padding: 2.5rem 2rem;
+  border-right: 2px solid #1C1917;
+}
+
+.farmer-login-card h2 {
+  color: #1C1917 !important; /* Fixes invisible white "FARMER LOGIN" text */
+  font-size: 1.25rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.farmer-login-card .card-subtitle {
+  color: #57534E !important; /* Fixes invisible subtitle text */
+  font-size: 0.8125rem;
+  margin-bottom: 1.5rem;
+}
+
+.farmer-login-card .form-label {
+  color: #57534E !important;
+  display: block;
+  font-family: monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.farmer-login-card .form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #1C1917;
+  background-color: #FFFFFF;
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: #1C1917;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.admin-login-card .admin-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid #2F5233;
+  background-color: #23492A;
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: #FFFFFF;
+  outline: none;
+  box-sizing: border-box;
+}
