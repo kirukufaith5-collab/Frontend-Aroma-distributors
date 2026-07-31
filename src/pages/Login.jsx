@@ -24,7 +24,7 @@ export const Login = () => {
     <div className="login-page">
       {/* Top Header */}
       <header className="brand-header">
-        <div className="brand-name">🌱 FINE AROMAS</div>
+        <div className="brand-name">🌱 Aromas Distributors</div>
         <span className="tag-badge">SUPPLY CHAIN PLATFORM</span>
       </header>
 
