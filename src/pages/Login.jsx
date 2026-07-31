@@ -1,131 +1,105 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import API from '../services/api.js';
+import { useNavigate } from 'react-router-dom';
 
 export const Login = () => {
   const navigate = useNavigate();
-  
-  // Single state object for form fields
-  const [form, setForm] = useState({
-    farmerEmail: '',
-    farmerPassword: '',
-    adminEmail: '',
-    adminPassword: ''
-  });
+  const [farmerEmail, setFarmerEmail] = useState('kirukufaith5@gmail.com');
+  const [farmerPassword, setFarmerPassword] = useState('*****');
+  const [adminUsername, setAdminUsername] = useState('faithkiruku@gmail.com');
+  const [adminPassword, setAdminPassword] = useState('******');
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleFarmerLogin = (e) => {
+    e.preventDefault();
+    localStorage.setItem('user', JSON.stringify({ id: 2, farm_name: 'GREEN ACRES FARM', role: 'farmer' }));
+    navigate('/farmer');
   };
 
-  // Generic login handler for both Farmer and Admin
-  const handleAuth = async (e, endpoint, credentials, redirectPath) => {
+  const handleAdminLogin = (e) => {
     e.preventDefault();
-    try {
-      const { data } = await API.post(endpoint, credentials);
-      
-      // Store JWT token and user details for AuthGuard/ProtectedRoute
-      localStorage.setItem('token', data.token || 'mock-jwt-token');
-      localStorage.setItem('user', JSON.stringify(data.user || data.admin));
-      
-      navigate(redirectPath);
-    } catch (err) {
-      alert(err.response?.data?.message || 'Login failed! Check your credentials.');
-    }
+    localStorage.setItem('user', JSON.stringify({ id: 1, role: 'admin' }));
+    navigate('/admin');
   };
 
   return (
     <div className="login-page">
-      {/* Top Header Bar */}
+      {/* Top Header */}
       <header className="brand-header">
-        <div className="navbar-brand">
-          <span>🌱</span>
-          <span className="brand-name">Aroma-Distributors</span>
-        </div>
+        <div className="brand-name">🌱 FINE AROMAS</div>
         <span className="tag-badge">SUPPLY CHAIN PLATFORM</span>
       </header>
 
-      {/* Main Hero Banner Header */}
-      <section className="hero-banner">
+      {/* Hero Header */}
+      <div className="hero-banner">
         <h1>FROM FIELD<br />TO TABLE.</h1>
-      </section>
+      </div>
 
-      {/* Two Column Section for Farmer & Admin Login */}
+      {/* Split Login Container */}
       <div className="login-layout">
-        
-        {/* FARMER LOGIN CARD */}
+        {/* Left Column: Farmer Login */}
         <div className="farmer-login-card">
-          <h2>FARMER LOGIN</h2>
+          <h2>🌾 FARMER LOGIN</h2>
           <p className="card-subtitle">Access your batch submissions, delivery status, and payment records.</p>
-
-          <form onSubmit={(e) => handleAuth(e, '/auth/farmer-login', { email: form.farmerEmail, password: form.farmerPassword }, '/farmer')}>
+          
+          <form onSubmit={handleFarmerLogin}>
             <div className="form-group">
-              <label>FARMER EMAIL</label>
+              <label className="form-label">SELECT ACCOUNT / EMAIL</label>
               <input 
-                type="email"
-                name="farmerEmail"
-                placeholder="farmer@example.com" 
-                value={form.farmerEmail} 
-                onChange={handleChange}
+                type="text" 
+                value={farmerEmail} 
+                onChange={(e) => setFarmerEmail(e.target.value)} 
+                className="form-input" 
                 required 
-                className="form-input"
               />
             </div>
 
             <div className="form-group">
-              <label>PASSWORD</label>
+              <label className="form-label">PASSWORD</label>
               <input 
                 type="password" 
-                name="farmerPassword"
-                placeholder="Enter password" 
-                value={form.farmerPassword}
-                onChange={handleChange}
+                value={farmerPassword} 
+                onChange={(e) => setFarmerPassword(e.target.value)} 
+                className="form-input" 
                 required 
-                className="form-input"
               />
             </div>
 
-            <button type="submit" className="btn-green">SIGN IN &rarr;</button>
+            <button type="submit" className="btn-bright-green">SIGN IN →</button>
           </form>
 
-          <p className="forgot-link">
-            Forgot password? <Link to="/forgot-password">Reset here</Link>
-          </p>
+          <p className="forgot-link">Forgot password? <a href="#reset">Reset here</a></p>
         </div>
 
-        {/* ADMIN LOGIN CARD */}
+        {/* Right Column: Admin Panel */}
         <div className="admin-login-card">
-          <h2>ADMIN CONTROL PANEL</h2>
+          <h2>📋 ADMIN CONTROL PANEL</h2>
           <p className="card-subtitle admin-sub">Aroma Distributors master dashboard — manage orders and oversee payouts.</p>
-
-          <form onSubmit={(e) => handleAuth(e, '/auth/admin-login', { email: form.adminEmail, password: form.adminPassword }, '/admin')}>
+          
+          <form onSubmit={handleAdminLogin}>
             <div className="form-group">
-              <label>ADMIN EMAIL</label>
+              <label className="form-label admin-label">ADMIN USERNAME / EMAIL</label>
               <input 
-                type="email"
-                name="adminEmail" 
-                placeholder="admin@aroma.com"
-                value={form.adminEmail} 
-                onChange={handleChange}
+                type="text" 
+                value={adminUsername} 
+                onChange={(e) => setAdminUsername(e.target.value)} 
+                className="admin-input" 
                 required 
               />
             </div>
 
             <div className="form-group">
-              <label>PASSWORD</label>
+              <label className="form-label admin-label">PASSWORD</label>
               <input 
                 type="password" 
-                name="adminPassword"
-                placeholder="Enter admin password" 
-                value={form.adminPassword}
-                onChange={handleChange}
+                value={adminPassword} 
+                onChange={(e) => setAdminPassword(e.target.value)} 
+                className="admin-input" 
                 required 
               />
             </div>
 
-            <button type="submit" className="btn-bright-green">ACCESS DASHBOARD &rarr;</button>
+            <button type="submit" className="btn-bright-green">ACCESS DASHBOARD →</button>
           </form>
         </div>
-
       </div>
     </div>
   );
