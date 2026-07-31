@@ -3,22 +3,40 @@ import { useNavigate } from 'react-router-dom';
 
 export const Login = () => {
   const navigate = useNavigate();
-  const [farmerEmail, setFarmerEmail] = useState('kirukufaith5@gmail.com');
-  const [farmerPassword, setFarmerPassword] = useState('*****');
-  const [adminUsername, setAdminUsername] = useState('faithkiruku@gmail.com');
-  const [adminPassword, setAdminPassword] = useState('******');
+
+  // Controlled state for Farmer form inputs
+  const [farmerEmail, setFarmerEmail] = useState('');
+  const [farmerPassword, setFarmerPassword] = useState('');
+
+  // Controlled state for Admin form inputs
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
 
   const handleFarmerLogin = (e) => {
-    e.preventDefault();
-    console.log("Farmer login triggered");
+    e.preventDefault(); // Prevents page reload
+    
+    // Save simulated user session to localStorage
     localStorage.setItem('user', JSON.stringify({ id: 2, farm_name: 'GREEN ACRES FARM', role: 'farmer' }));
+    
+    // Clear the form fields
+    setFarmerEmail('');
+    setFarmerPassword('');
+
+    // Navigate to the Farmer Dashboard
     navigate('/farmer');
   };
 
   const handleAdminLogin = (e) => {
-    e.preventDefault();
-    console.log("Admin login triggered");
+    e.preventDefault(); // Prevents page reload
+    
+    // Save simulated user session to localStorage
     localStorage.setItem('user', JSON.stringify({ id: 1, role: 'admin' }));
+    
+    // Clear the form fields
+    setAdminUsername('');
+    setAdminPassword('');
+
+    // Navigate to the Admin Dashboard
     navigate('/admin');
   };
 
@@ -43,7 +61,8 @@ export const Login = () => {
             <div className="form-group">
               <label className="form-label">SELECT ACCOUNT / EMAIL</label>
               <input 
-                type="text" 
+                type="email" 
+                placeholder="e.g. farmer@example.com"
                 value={farmerEmail} 
                 onChange={(e) => setFarmerEmail(e.target.value)} 
                 className="form-input" 
@@ -55,6 +74,7 @@ export const Login = () => {
               <label className="form-label">PASSWORD</label>
               <input 
                 type="password" 
+                placeholder="Enter password"
                 value={farmerPassword} 
                 onChange={(e) => setFarmerPassword(e.target.value)} 
                 className="form-input" 
@@ -78,6 +98,7 @@ export const Login = () => {
               <label className="form-label admin-label">ADMIN USERNAME / EMAIL</label>
               <input 
                 type="text" 
+                placeholder="e.g. admin_username"
                 value={adminUsername} 
                 onChange={(e) => setAdminUsername(e.target.value)} 
                 className="admin-input" 
@@ -89,6 +110,7 @@ export const Login = () => {
               <label className="form-label admin-label">PASSWORD</label>
               <input 
                 type="password" 
+                placeholder="Enter admin password"
                 value={adminPassword} 
                 onChange={(e) => setAdminPassword(e.target.value)} 
                 className="admin-input" 
