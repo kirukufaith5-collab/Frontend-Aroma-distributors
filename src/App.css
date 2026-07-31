@@ -543,3 +543,297 @@ body {
   outline: none;
   box-sizing: border-box;
 }
+/* =========================================================
+   GLOBAL BASE & RESET
+   ========================================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f4f3ed;
+  color: #1c2826;
+}
+
+/* =========================================================
+   HEADER / NAVBAR
+   ========================================================= */
+.farmer-header, .admin-header {
+  background-color: #12372a;
+  color: #f4f3ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.farmer-brand, .admin-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.farmer-badge, .admin-badge {
+  background-color: #2d6a4f;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.btn-logout {
+  background: transparent;
+  border: none;
+  color: #ad2831;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-logout:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   LAYOUT CONTAINER (SIDEBAR + MAIN)
+   ========================================================= */
+.farmer-layout, .admin-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+/* SIDEBAR */
+.farmer-sidebar, .admin-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background-color: #e8e6d9;
+  border-right: 1px solid #d0cebd;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* SUMMARY CARDS IN SIDEBAR */
+.summary-card {
+  background-color: #f8f7f0;
+  border: 1px solid #d0cebd;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.summary-title {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #526e60;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+}
+
+/* NAVIGATION BUTTONS */
+.farmer-nav, .admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #12372a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: #dbd8c8;
+}
+
+.nav-item.active {
+  background-color: #12372a;
+  color: #ffffff;
+}
+
+/* MAIN CONTENT AREA */
+.farmer-main, .admin-main {
+  flex: 1;
+  padding: 2.5rem;
+  background-color: #f4f3ed;
+}
+
+/* FIX: Ensure Headings are dark green, high-contrast, and visible! */
+.view-header {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #12372a !important; /* Forces high-contrast dark green */
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.view-desc {
+  color: #526e60;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+/* =========================================================
+   TABLE STYLES
+   ========================================================= */
+.table-wrapper {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #d0cebd;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.farmer-table, .admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.farmer-table th, .admin-table th {
+  background-color: #e8e6d9;
+  color: #12372a;
+  padding: 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #d0cebd;
+}
+
+.farmer-table td, .admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e8e6d9;
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.farmer-table tr:last-child td, .admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   STATUS BADGES & ACTION BUTTONS
+   ========================================================= */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.available, .status-badge.approved {
+  background-color: #d8f3dc;
+  color: #1b4332;
+  border: 1px solid #b7e4c7;
+}
+
+.status-badge.pending {
+  background-color: #fff3bf;
+  color: #856404;
+  border: 1px solid #ffe066;
+}
+
+.status-badge.closed, .status-badge.rejected {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.btn-action-close {
+  background-color: #12372a;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-action-close:hover {
+  background-color: #2d6a4f;
+}
+
+/* =========================================================
+   FORMS & CARDS
+   ========================================================= */
+.register-batch-card, .create-order-card {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #d0cebd;
+  max-width: 550px;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #12372a;
+}
+
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid #d0cebd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #2d6a4f;
+  box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.15);
+}
+
+.btn-submit-batch {
+  width: 100%;
+  padding: 0.85rem;
+  background-color: #12372a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.btn-submit-batch:hover {
+  background-color: #2d6a4f;
+}

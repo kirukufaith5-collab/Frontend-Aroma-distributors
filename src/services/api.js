@@ -1,50 +1,56 @@
-// frontend/src/services/api.js
-import axios from "axios";
+// src/services/api.js
+const BASE_URL = 'http://127.0.0.1:5000/api'; // Adjust port if your Flask app runs on another port
 
-// Create an Axios instance pointing to your backend URL
-const API = axios.create({
-  baseURL: 'http://localhost:5000/api', // Flask server address
-});
+const API = {
+  get: async (endpoint) => {
+    const response = await fetch(`${BASE_URL}${endpoint}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json();
+    return { data }; // Wrapped in { data } so your res.data calls keep working seamlessly
+  },
 
-// Automatically inject JWT Token into requests if available
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  post: async (endpoint, payload) => {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json();
+    return { data };
+  },
+
+  put: async (endpoint, payload) => {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json();
+    return { data };
+  },
+
+  delete: async (endpoint) => {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json();
+    return { data };
   }
-  return config;
-});
-
-// AUTHENTICATION API CALLS
-// Login user (Farmer or Admin)
-export const loginUser = (credentials) => API.post('/auth/login', credentials);
-
-// Request password reset link (sends email)
-export const requestPasswordReset = (emailData) => API.post('/auth/forgot-password', emailData);
-
-// Submit new password using reset token
-export const resetPassword = (resetData) => API.post('/auth/reset-password', resetData);
-
-// Get currently logged-in user profile
-export const getUserProfile = () => API.get('/auth/me');
-
-// PRODUCT BATCHES API CALLS (Product_Batches)
-export const getProductBatches = () => API.get('/batches');
-export const createProductBatch = (batchData) => API.post('/batches', batchData);
-export const updateProductBatch = (id, batchData) => API.put(`/batches/${id}`, batchData);
-export const deleteProductBatch = (id) => API.delete(`/batches/${id}`);
-
-
-// CLIENT ORDERS API CALLS (Client_Orders & Ordered_Items)
-export const getOrders = () => API.get('/orders');
-export const getOrderById = (id) => API.get(`/orders/${id}`);
-export const createOrder = (orderData) => API.post('/orders', orderData);
-
-// PAYOUTS API CALLS (Payouts)
-export const getPayouts = () => API.get('/payouts');
-
-// CLIENTS API CALLS (Clients)
-
-export const getClients = () => API.get('/clients');
+};
 
 export default API;

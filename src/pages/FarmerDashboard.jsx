@@ -1,53 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api.js';
-import Sidebar from "../components/Sidebar.jsx";
-import Status from "../components/Status.jsx";
 
-export const FarmerDashboard = () => {
+const FarmerDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('harvest');
 
-  // Logged-in farmer session info
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const farmerId = user.id || 2;
+  // Navigation tab state: 'batches' | 'register'
+  const [activeTab, setActiveTab] = useState('batches');
 
-  // Batches & Payouts State with initial fallbacks
+  // Batches state
   const [batches, setBatches] = useState([
-    { id: 1, created_at: '2026-07-10', product_type: 'Tomatoes', weight: '45.5', notes: 'Grade A', status: 'APPROVED' },
-    { id: 2, created_at: '2026-07-14', product_type: 'Potatoes', weight: '30', notes: '—', status: 'PENDING' }
+    { batch_id: 101, product_type: 'Tomatoes', weight: 45.5, status: 'Available' },
+    { batch_id: 102, product_type: 'Potatoes', weight: 30.0, status: 'Available' },
+    { batch_id: 103, product_type: 'Butternut', weight: 22.8, status: 'Pending' }
   ]);
 
-  const [payoutsData, setPayoutsData] = useState({
-    payouts: [{ id: 101, issued_at: '2026-07-01', description: 'Harvest Payout Batch #1', amount: 1500, status: 'PAID' }],
-    summary: { total_outstanding: 500, total_paid: 1500 }
+  // New batch form state matching ProductBatch schema
+  const [formData, setFormData] = useState({
+    farmer_id: '1', // Hardcoded or pulled from auth user context
+    product_type: 'Tomatoes',
+    weight: ''
   });
 
-  // Single form state object
-  const [formData, setFormData] = useState({ productType: 'Tomatoes', weight: '', notes: '' });
-
-  // Initial Data Fetch
+  // Fetch farmer's own batches from backend
   useEffect(() => {
-    API.get(`/farmer/${farmerId}/batches`).then(res => setBatches(res.data)).catch(() => console.log('Offline fallback batches loaded'));
-    API.get(`/farmer/${farmerId}/payouts`).then(res => setPayoutsData(res.data)).catch(() => console.log('Offline fallback payouts loaded'));
-  }, [farmerId]);
+    API.get('/farmer/batches')
+      .then(res => setBatches(Array.isArray(res.data) ? res.data : []))
+      .catch(err => console.log('Offline mode: using sample farmer batches', err));
+  }, []);
 
-  // Handle Harvest Batch Submission
-  const handleSubmit = async (e) => {
+  // Submit new product batch
+  const handleRegisterBatch = async (e) => {
     e.preventDefault();
-    const payload = { farmer_id: farmerId, product_type: formData.productType, weight: formData.weight, notes: formData.notes };
 
+    const newBatchUI = {
+      batch_id: batches.length + 101,
+      product_type: formData.product_type,
+      weight: Number(formData.weight),
+      status: 'Pending'
+    };
+
+    // Update UI state immediately
+    setBatches([newBatchUI, ...batches]);
+    setFormData({ ...formData, weight: '' });
+    setActiveTab('batches');
+
+    // Post to Flask backend
     try {
+      const payload = {
+        farmer_id: Number(formData.farmer_id),
+        product_type: formData.product_type,
+        weight: Number(formData.weight)
+      };
+
       await API.post('/farmer/batches', payload);
-      alert('Harvest submitted successfully!');
+      console.log("Batch successfully registered in database!");
     } catch (err) {
-      // Local fallback for offline testing
-      const newBatch = { id: batches.length + 1, created_at: new Date().toISOString().split('T')[0], product_type: formData.productType, weight: formData.weight, notes: formData.notes || '—', status: 'PENDING' };
-      setBatches([newBatch, ...batches]);
-      alert('Harvest batch logged (offline mode)!');
+      console.log("Backend offline or endpoint missing. Saved locally.", err);
     }
-    
-    setFormData({ productType: 'Tomatoes', weight: '', notes: '' });
   };
 
   const handleLogout = () => {
@@ -55,134 +65,129 @@ export const FarmerDashboard = () => {
     navigate('/login');
   };
 
-  // Metrics array for Sidebar component
-  const metrics = [
-    { label: 'Batches Logged', value: batches.length },
-    { label: 'Outstanding Payout', value: `KSh ${payoutsData.summary.total_outstanding}` },
-    { label: 'Total Paid', value: `KSh ${payoutsData.summary.total_paid}` }
-  ];
+  // Metrics
+  const totalWeight = batches.reduce((acc, b) => acc + Number(b.weight || 0), 0);
+  const pendingCount = batches.filter(b => b.status === 'Pending' || b.status === 'PENDING').length;
 
   return (
     <div className="farmer-container">
-      {/* Top Navigation Bar */}
+      {/* Top Header */}
       <header className="farmer-header">
-        <span className="farmer-brand">🌱 Aroma Distributors — Farmer Portal</span>
-        <button onClick={handleLogout} className="btn-logout">[→ LOGOUT]</button>
+        <div className="farmer-brand">
+          <span>🌱 Aroma-Distributors</span>
+          <span className="farmer-badge">FARMER PORTAL</span>
+        </div>
+        <button className="btn-logout" onClick={handleLogout}>[→ LOGOUT]</button>
       </header>
 
-      <div className="farmer-content-layout">
-        {/* Sidebar Component */}
-        <Sidebar
-          title={user.farm_name || 'FARM SUMMARY'}
-          metrics={metrics}
-          activeTab={activeTab}
-          onTabSelect={setActiveTab}
-        />
+      <div className="farmer-layout">
+        {/* Sidebar */}
+        <aside className="farmer-sidebar">
+          <div className="summary-card">
+            <small className="summary-title">FARM SUMMARY</small>
+            <div className="summary-row">
+              <span>Total Produce</span>
+              <strong>{totalWeight.toFixed(1)} kg</strong>
+            </div>
+            <div className="summary-row">
+              <span>Pending Inspection</span>
+              <strong className="text-orange">{pendingCount}</strong>
+            </div>
+          </div>
 
-        {/* Main View Area */}
-        <main className="farmer-main-panel">
+          <nav className="farmer-nav">
+            <button 
+              className={`nav-item ${activeTab === 'batches' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('batches')}
+            >
+              MY BATCHES
+            </button>
+            <button 
+              className={`nav-item ${activeTab === 'register' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('register')}
+            >
+              + REGISTER NEW BATCH
+            </button>
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="farmer-main">
           
-          {/* TAB 1: LOG HARVEST FORM */}
-          {activeTab === 'harvest' && (
+          {/* TAB 1: VIEW BATCHES */}
+          {activeTab === 'batches' && (
             <div>
-              <h1 className="view-title">LOG HARVEST BATCH</h1>
-              <p className="view-desc">Record a new harvest submission to send to distributors.</p>
-              
-              <div className="form-card">
-                <form onSubmit={handleSubmit}>
+              <h1 className="view-header">MY PRODUCT BATCHES</h1>
+              <p className="view-desc">List of all produce batches registered for admin review and order allocation.</p>
+
+              <div className="table-wrapper">
+                <table className="farmer-table">
+                  <thead>
+                    <tr>
+                      <th>BATCH ID</th>
+                      <th>PRODUCT TYPE</th>
+                      <th>WEIGHT (KG)</th>
+                      <th>STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {batches.map(b => (
+                      <tr key={b.batch_id}>
+                        <td>#{b.batch_id}</td>
+                        <td><strong>{b.product_type}</strong></td>
+                        <td>{b.weight} kg</td>
+                        <td>
+                          <span className={`status-badge ${(b.status || 'pending').toLowerCase()}`}>
+                            {b.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: REGISTER NEW BATCH */}
+          {activeTab === 'register' && (
+            <div>
+              <h1 className="view-header">REGISTER NEW PRODUCE BATCH</h1>
+              <p className="view-desc">Submit your harvested crop weight to make it available for client orders.</p>
+
+              <div className="register-batch-card">
+                <form onSubmit={handleRegisterBatch}>
+                  
                   <div className="form-group">
-                    <label className="form-label">PRODUCT TYPE</label>
+                    <label>PRODUCT TYPE</label>
                     <select 
-                      value={formData.productType} 
-                      onChange={e => setFormData({ ...formData, productType: e.target.value })} 
+                      value={formData.product_type} 
+                      onChange={e => setFormData({ ...formData, product_type: e.target.value })} 
                       className="form-input"
                     >
                       <option value="Tomatoes">Tomatoes</option>
                       <option value="Potatoes">Potatoes</option>
-                      <option value="Cabbage">Cabbage</option>
+                      <option value="Butternut">Butternut</option>
+                      <option value="Carrots">Carrots</option>
                       <option value="Onions">Onions</option>
                     </select>
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">TOTAL WEIGHT (KG)</label>
-                    <input
-                      required
-                      type="number"
-                      step="0.1"
-                      placeholder="e.g. 25.5"
-                      value={formData.weight}
-                      onChange={e => setFormData({ ...formData, weight: e.target.value })}
-                      className="form-input"
+                    <label>WEIGHT (KG)</label>
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      placeholder="e.g. 50.0" 
+                      value={formData.weight} 
+                      onChange={e => setFormData({ ...formData, weight: e.target.value })} 
+                      required 
+                      className="form-input" 
                     />
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">NOTES</label>
-                    <textarea
-                      rows="3"
-                      placeholder="Freshly picked this morning"
-                      value={formData.notes}
-                      onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <button type="submit" className="btn-submit">Submit Harvest →</button>
+                  <button type="submit" className="btn-submit-batch">+ SUBMIT BATCH FOR REVIEW</button>
                 </form>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: HARVEST LOG TABLE */}
-          {activeTab === 'history' && (
-            <div>
-              <h1 className="view-title">HARVEST LOG</h1>
-              <p className="view-desc">Review your logged batch history and current approval status.</p>
-              
-              <div className="table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr><th>DATE</th><th>PRODUCT</th><th>WEIGHT</th><th>NOTES</th><th>STATUS</th></tr>
-                  </thead>
-                  <tbody>
-                    {batches.map(b => (
-                      <tr key={b.id}>
-                        <td>{b.created_at}</td>
-                        <td><strong>{b.product_type}</strong></td>
-                        <td>{b.weight} kg</td>
-                        <td>{b.notes}</td>
-                        <td><Status status={b.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: PAYOUT STATEMENTS */}
-          {activeTab === 'payouts' && (
-            <div>
-              <h1 className="view-title">PAYOUT STATEMENTS</h1>
-              <p className="view-desc">View financial records and completed transaction receipts.</p>
-              
-              <div className="table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr><th>ISSUED DATE</th><th>DESCRIPTION</th><th>AMOUNT</th><th>STATUS</th></tr>
-                  </thead>
-                  <tbody>
-                    {payoutsData.payouts.map(p => (
-                      <tr key={p.id}>
-                        <td>{p.issued_at}</td>
-                        <td>{p.description}</td>
-                        <td><strong>KSh {p.amount.toLocaleString()}</strong></td>
-                        <td><Status status={p.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
           )}
@@ -192,3 +197,6 @@ export const FarmerDashboard = () => {
     </div>
   );
 };
+
+// Default export at the bottom outside the component scope
+export default FarmerDashboard;
