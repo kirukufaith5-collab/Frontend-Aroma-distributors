@@ -12,13 +12,22 @@ export const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Local history states for typed inputs
+  const [clientHistory, setClientHistory] = useState(() => {
+    return JSON.parse(localStorage.getItem('client_history') || '[]');
+  });
+  const [batchHistory, setBatchHistory] = useState(() => {
+    return JSON.parse(localStorage.getItem('batch_history') || '[]');
+  });
+
+  // Free-text form state (Users can type names/IDs directly)
   const [formData, setFormData] = useState({
-    client_id: '',
-    batch_id: '',
+    clientInput: '',
+    batchInput: '',
     allocated_weight: ''
   });
 
-  // Helper functions to pull fresh data directly from PostgreSQL/SQLAlchemy
+  // Fetch initial data from Flask
   const fetchInitialData = async () => {
     try {
       const [clientsRes, batchesRes, ordersRes] = await Promise.all([
@@ -27,18 +36,9 @@ export const AdminDashboard = () => {
         API.get('/admin/orders')
       ]);
 
-      setClients(clientsRes.data);
-      setBatches(batchesRes.data);
-      setOrders(ordersRes.data);
-
-      // Set default values for dropdowns once data loads
-      if (clientsRes.data.length > 0 && batchesRes.data.length > 0) {
-        setFormData(prev => ({
-          ...prev,
-          client_id: clientsRes.data[0].client_id,
-          batch_id: batchesRes.data[0].batch_id
-        }));
-      }
+      setClients(clientsRes.data || []);
+      setBatches(batchesRes.data || []);
+      setOrders(ordersRes.data || []);
     } catch (err) {
       console.error('Failed to communicate with Flask backend:', err);
     }
@@ -48,56 +48,74 @@ export const AdminDashboard = () => {
     fetchInitialData();
   }, []);
 
-  // Update Batch Status
   const handleBatchStatus = async (batch_id, status) => {
     try {
       await API.put(`/admin/batches/${batch_id}/status`, { status });
-      // Refresh local state after successful DB mutation
       setBatches(prev => prev.map(b => b.batch_id === batch_id ? { ...b, status } : b));
     } catch (err) {
-      console.error('Failed to update status in database:', err);
+      console.error('Failed to update batch status:', err);
     }
   };
 
-  // Close Client Order
   const handleCloseOrder = async (order_id) => {
     try {
       await API.post(`/admin/orders/${order_id}/close`);
       setOrders(prev => prev.map(o => o.order_id === order_id ? { ...o, status: 'Closed' } : o));
     } catch (err) {
-      console.error('Failed to close order in database:', err);
+      console.error('Failed to close order:', err);
     }
   };
 
-  // Create Order matching Flask backend structure
   const handleCreateOrder = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    // Resolve client input to an existing client_id or match typed text
+    const matchedClient = clients.find(
+      c => String(c.client_id) === formData.clientInput.trim() || 
+           c.company_name.toLowerCase() === formData.clientInput.trim().toLowerCase()
+    );
+    
+    // Default to matched ID or parse raw typed input if numerical
+    const resolvedClientId = matchedClient ? matchedClient.client_id : Number(formData.clientInput) || 1;
+
+    // Resolve batch input
+    const matchedBatch = batches.find(
+      b => String(b.batch_id) === formData.batchInput.trim() ||
+           b.product_type.toLowerCase() === formData.batchInput.trim().toLowerCase()
+    );
+    const resolvedBatchId = matchedBatch ? matchedBatch.batch_id : Number(formData.batchInput) || 101;
+
+    // Save inputs to browser history if new
+    if (formData.clientInput && !clientHistory.includes(formData.clientInput)) {
+      const updatedHistory = [formData.clientInput, ...clientHistory].slice(0, 10);
+      setClientHistory(updatedHistory);
+      localStorage.setItem('client_history', JSON.stringify(updatedHistory));
+    }
+
+    if (formData.batchInput && !batchHistory.includes(formData.batchInput)) {
+      const updatedHistory = [formData.batchInput, ...batchHistory].slice(0, 10);
+      setBatchHistory(updatedHistory);
+      localStorage.setItem('batch_history', JSON.stringify(updatedHistory));
+    }
+
     const payload = {
-      client_id: Number(formData.client_id),
+      client_id: resolvedClientId,
       created_by_admin_id: 1,
-      batch_id: Number(formData.batch_id),
+      batch_id: resolvedBatchId,
       allocated_weight: Number(formData.allocated_weight)
     };
 
     try {
-      // 1. Persist to Flask DB via POST /admin/orders
       const response = await API.post('/admin/orders', payload);
       
       if (response.status === 201) {
-        console.log("Database entry saved! Assigned Order ID:", response.data.order_id);
-        
-        // 2. Fetch fresh order list directly from DB to guarantee schema alignment
+        // Fetch fresh database state
         const freshOrders = await API.get('/admin/orders');
         setOrders(freshOrders.data);
 
-        // 3. Reset state & return to overview
-        setFormData({
-          client_id: clients[0]?.client_id || '',
-          batch_id: batches[0]?.batch_id || '',
-          allocated_weight: ''
-        });
+        // Reset form
+        setFormData({ clientInput: '', batchInput: '', allocated_weight: '' });
         setActiveTab('orders');
       }
     } catch (err) {
@@ -260,46 +278,64 @@ export const AdminDashboard = () => {
             </div>
           )}
 
-          {/* TAB 3: CREATE ORDER */}
+          {/* TAB 3: CREATE ORDER (INPUT + HISTORY DATALIST) */}
           {activeTab === 'create' && (
             <div>
               <h1 className="view-header">CREATE CLIENT ORDER</h1>
-              <p className="view-desc">Create a ClientOrder entry and allocate ProductBatch weight via OrderedItem.</p>
+              <p className="view-desc">Type client and batch names directly or pick from recent typed history.</p>
               
               <div className="create-order-card">
                 <form onSubmit={handleCreateOrder}>
+                  
+                  {/* Client Input Field */}
                   <div className="form-group">
-                    <label>SELECT CLIENT</label>
-                    <select 
-                      value={formData.client_id} 
-                      onChange={e => setFormData({ ...formData, client_id: e.target.value })} 
-                      className="form-input"
+                    <label>CLIENT NAME OR ID</label>
+                    <input
+                      type="text"
+                      list="client-suggestions"
+                      placeholder="Type client name or ID (e.g. Fresh Mart)"
+                      value={formData.clientInput}
+                      onChange={e => setFormData({ ...formData, clientInput: e.target.value })}
                       required
-                    >
+                      className="form-input"
+                    />
+                    <datalist id="client-suggestions">
+                      {/* Show recently typed entries */}
+                      {clientHistory.map((item, idx) => (
+                        <option key={`hist-c-${idx}`} value={item} label="Recent entry" />
+                      ))}
+                      {/* Show backend database options */}
                       {clients.map(c => (
-                        <option key={c.client_id} value={c.client_id}>
-                          {c.company_name} (ID: #{c.client_id})
-                        </option>
+                        <option key={c.client_id} value={c.company_name} label={`ID: #${c.client_id}`} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
 
+                  {/* Batch Input Field */}
                   <div className="form-group">
-                    <label>SELECT PRODUCT BATCH TO ALLOCATE FROM</label>
-                    <select 
-                      value={formData.batch_id} 
-                      onChange={e => setFormData({ ...formData, batch_id: e.target.value })} 
-                      className="form-input"
+                    <label>PRODUCT BATCH OR ID</label>
+                    <input
+                      type="text"
+                      list="batch-suggestions"
+                      placeholder="Type product name or Batch ID (e.g. Tomatoes or 101)"
+                      value={formData.batchInput}
+                      onChange={e => setFormData({ ...formData, batchInput: e.target.value })}
                       required
-                    >
-                      {batches.map(b => (
-                        <option key={b.batch_id} value={b.batch_id}>
-                          Batch #{b.batch_id} - {b.product_type} ({b.weight} kg available)
-                        </option>
+                      className="form-input"
+                    />
+                    <datalist id="batch-suggestions">
+                      {/* Show recently typed entries */}
+                      {batchHistory.map((item, idx) => (
+                        <option key={`hist-b-${idx}`} value={item} label="Recent entry" />
                       ))}
-                    </select>
+                      {/* Show backend database options */}
+                      {batches.map(b => (
+                        <option key={b.batch_id} value={`${b.batch_id}`} label={`${b.product_type} (${b.weight}kg)`} />
+                      ))}
+                    </datalist>
                   </div>
 
+                  {/* Allocated Weight Field */}
                   <div className="form-group">
                     <label>ALLOCATED WEIGHT (KG)</label>
                     <input 
