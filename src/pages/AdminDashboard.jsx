@@ -5,106 +5,106 @@ import API from '../services/api.js';
 export const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  // Navigation tab state: 'orders' | 'receive' | 'create'
   const [activeTab, setActiveTab] = useState('orders');
 
-  // Database-aligned states
-  const [clients, setClients] = useState([
-    { client_id: 1, company_name: 'Fresh Mart Supermarket' },
-    { client_id: 2, company_name: 'Metro Garden Restaurant' },
-    { client_id: 3, company_name: 'FoodHub Corp' }
-  ]);
+  const [clients, setClients] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const [batches, setBatches] = useState([
-    { batch_id: 101, farmer_name: 'James Kamau', product_type: 'Tomatoes', weight: 45.5, status: 'Available' },
-    { batch_id: 102, farmer_name: 'Maria Wanjiru', product_type: 'Potatoes', weight: 30.0, status: 'Available' },
-    { batch_id: 103, farmer_name: 'John Mwangi', product_type: 'Butternut', weight: 22.8, status: 'Available' }
-  ]);
-
-  const [orders, setOrders] = useState([
-    { order_id: 1, client_name: 'Fresh Mart Supermarket', product_type: 'Tomatoes', allocated_weight: 120, status: 'Pending' },
-    { order_id: 2, client_name: 'Metro Garden Restaurant', product_type: 'Potatoes', allocated_weight: 80, status: 'Pending' },
-    { order_id: 3, client_name: 'FoodHub Corp', product_type: 'Butternut', allocated_weight: 200, status: 'Closed' }
-  ]);
-
-  // Form state aligned to ClientOrder + OrderedItem models
   const [formData, setFormData] = useState({
-    client_id: '1',
-    batch_id: '101',
+    client_id: '',
+    batch_id: '',
     allocated_weight: ''
   });
 
-  // Fetch initial data from Flask API
-  useEffect(() => {
-    API.get('/admin/clients')
-      .then(res => setClients(res.data))
-      .catch(() => console.log('Offline: using sample clients'));
-
-    API.get('/admin/batches')
-      .then(res => setBatches(res.data))
-      .catch(() => console.log('Offline: using sample batches'));
-
-    API.get('/admin/orders')
-      .then(res => setOrders(res.data))
-      .catch(() => console.log('Offline: using sample orders'));
-  }, []);
-
-  // Update Batch Status (Approve / Reject incoming batches)
-  const handleBatchStatus = async (batch_id, status) => {
+  // Helper functions to pull fresh data directly from PostgreSQL/SQLAlchemy
+  const fetchInitialData = async () => {
     try {
-      await API.post(`/admin/batches/${batch_id}/status`, { status });
+      const [clientsRes, batchesRes, ordersRes] = await Promise.all([
+        API.get('/admin/clients'),
+        API.get('/admin/batches'),
+        API.get('/admin/orders')
+      ]);
+
+      setClients(clientsRes.data);
+      setBatches(batchesRes.data);
+      setOrders(ordersRes.data);
+
+      // Set default values for dropdowns once data loads
+      if (clientsRes.data.length > 0 && batchesRes.data.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          client_id: clientsRes.data[0].client_id,
+          batch_id: batchesRes.data[0].batch_id
+        }));
+      }
     } catch (err) {
-      console.log('Offline mode: updated batch status locally');
+      console.error('Failed to communicate with Flask backend:', err);
     }
-    setBatches(prev => prev.map(b => b.batch_id === batch_id ? { ...b, status } : b));
   };
 
-  // Close Client Order (Updates status in ClientOrder model)
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  // Update Batch Status
+  const handleBatchStatus = async (batch_id, status) => {
+    try {
+      await API.put(`/admin/batches/${batch_id}/status`, { status });
+      // Refresh local state after successful DB mutation
+      setBatches(prev => prev.map(b => b.batch_id === batch_id ? { ...b, status } : b));
+    } catch (err) {
+      console.error('Failed to update status in database:', err);
+    }
+  };
+
+  // Close Client Order
   const handleCloseOrder = async (order_id) => {
     try {
       await API.post(`/admin/orders/${order_id}/close`);
+      setOrders(prev => prev.map(o => o.order_id === order_id ? { ...o, status: 'Closed' } : o));
     } catch (err) {
-      console.log('Offline mode: closed order locally');
+      console.error('Failed to close order in database:', err);
     }
-    setOrders(prev => prev.map(o => o.order_id === order_id ? { ...o, status: 'Closed' } : o));
   };
 
-  // Create Order matching ClientOrder and OrderedItem schema
+  // Create Order matching Flask backend structure
   const handleCreateOrder = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    const selectedClient = clients.find(c => String(c.client_id) === String(formData.client_id));
-    const selectedBatch = batches.find(b => String(b.batch_id) === String(formData.batch_id));
-
-    // Construct UI object mirroring ClientOrder + OrderedItem join data
-    const newOrderUI = {
-      order_id: orders.length + 1,
-      client_name: selectedClient ? selectedClient.company_name : 'Unknown Client',
-      product_type: selectedBatch ? selectedBatch.product_type : 'Product',
-      allocated_weight: Number(formData.allocated_weight),
-      status: 'Pending'
+    const payload = {
+      client_id: Number(formData.client_id),
+      created_by_admin_id: 1,
+      batch_id: Number(formData.batch_id),
+      allocated_weight: Number(formData.allocated_weight)
     };
 
-    // 1. Update UI state immediately
-    setOrders([newOrderUI, ...orders]);
-
-    // 2. Reset form & switch back to ALL ORDERS tab
-    setFormData({ client_id: clients[0]?.client_id || '1', batch_id: batches[0]?.batch_id || '101', allocated_weight: '' });
-    setActiveTab('orders');
-
-    // 3. Payload sent to Flask matching backend Models
     try {
-      const payload = {
-        client_id: Number(formData.client_id),
-        created_by_admin_id: 1, // Currently logged in Admin ID
-        batch_id: Number(formData.batch_id),
-        allocated_weight: Number(formData.allocated_weight)
-      };
+      // 1. Persist to Flask DB via POST /admin/orders
+      const response = await API.post('/admin/orders', payload);
+      
+      if (response.status === 201) {
+        console.log("Database entry saved! Assigned Order ID:", response.data.order_id);
+        
+        // 2. Fetch fresh order list directly from DB to guarantee schema alignment
+        const freshOrders = await API.get('/admin/orders');
+        setOrders(freshOrders.data);
 
-      await API.post('/admin/orders', payload);
-      console.log("Saved directly to Flask backend database!");
+        // 3. Reset state & return to overview
+        setFormData({
+          client_id: clients[0]?.client_id || '',
+          batch_id: batches[0]?.batch_id || '',
+          allocated_weight: ''
+        });
+        setActiveTab('orders');
+      }
     } catch (err) {
-      console.log("Backend offline or endpoint missing. Updated local state.", err);
+      console.error("Database Save Failed:", err.response?.data || err.message);
+      alert("Failed to write order to backend database.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,13 +113,11 @@ export const AdminDashboard = () => {
     navigate('/login');
   };
 
-  // Operations Metrics
   const pendingBatchesCount = batches.filter(b => b.status === 'Available' || b.status === 'PENDING').length;
   const activeOrdersCount = orders.filter(o => o.status === 'Pending' || o.status === 'ACTIVE').length;
 
   return (
     <div className="admin-container">
-      {/* Top Bar */}
       <header className="admin-header">
         <div className="admin-brand">
           <span>🌱 Aroma-Distributors</span>
@@ -129,7 +127,6 @@ export const AdminDashboard = () => {
       </header>
 
       <div className="admin-layout">
-        {/* Sidebar */}
         <aside className="admin-sidebar">
           <div className="summary-card">
             <small className="summary-title">OPERATIONS SUMMARY</small>
@@ -165,10 +162,8 @@ export const AdminDashboard = () => {
           </nav>
         </aside>
 
-        {/* Main Content */}
         <main className="admin-main">
-          
-          {/* TAB 1: PRODUCT BATCHES */}
+          {/* TAB 1: BATCHES */}
           {activeTab === 'receive' && (
             <div>
               <h1 className="view-header">PRODUCT BATCHES</h1>
@@ -192,7 +187,7 @@ export const AdminDashboard = () => {
                         <td><strong>{b.farmer_name || `Farmer #${b.farmer_id}`}</strong></td>
                         <td><strong>{b.product_type}</strong></td>
                         <td>{b.weight} kg</td>
-                        <td><span className={`status-badge ${b.status.toLowerCase()}`}>{b.status}</span></td>
+                        <td><span className={`status-badge ${b.status?.toLowerCase()}`}>{b.status}</span></td>
                         <td>
                           {b.status === 'Available' || b.status === 'PENDING' ? (
                             <div className="action-buttons">
@@ -211,7 +206,7 @@ export const AdminDashboard = () => {
             </div>
           )}
 
-          {/* TAB 2: ALL CLIENT ORDERS */}
+          {/* TAB 2: ORDERS */}
           {activeTab === 'orders' && (
             <div>
               <h1 className="view-header">CLIENT ORDERS</h1>
@@ -248,7 +243,7 @@ export const AdminDashboard = () => {
                         <td>{o.product_type}</td>
                         <td><strong>{o.allocated_weight} kg</strong></td>
                         <td>
-                          <span className={`order-status ${o.status.toLowerCase()}`}>{o.status}</span>
+                          <span className={`order-status ${o.status?.toLowerCase()}`}>{o.status}</span>
                         </td>
                         <td>
                           {o.status === 'Pending' || o.status === 'ACTIVE' ? (
@@ -265,7 +260,7 @@ export const AdminDashboard = () => {
             </div>
           )}
 
-          {/* TAB 3: CREATE ORDER FORM */}
+          {/* TAB 3: CREATE ORDER */}
           {activeTab === 'create' && (
             <div>
               <h1 className="view-header">CREATE CLIENT ORDER</h1>
@@ -273,13 +268,13 @@ export const AdminDashboard = () => {
               
               <div className="create-order-card">
                 <form onSubmit={handleCreateOrder}>
-                  {/* Select Client (Foreign key: clients.client_id) */}
                   <div className="form-group">
                     <label>SELECT CLIENT</label>
                     <select 
                       value={formData.client_id} 
                       onChange={e => setFormData({ ...formData, client_id: e.target.value })} 
                       className="form-input"
+                      required
                     >
                       {clients.map(c => (
                         <option key={c.client_id} value={c.client_id}>
@@ -289,13 +284,13 @@ export const AdminDashboard = () => {
                     </select>
                   </div>
 
-                  {/* Select Inventory Batch (Foreign key: product_batches.batch_id) */}
                   <div className="form-group">
                     <label>SELECT PRODUCT BATCH TO ALLOCATE FROM</label>
                     <select 
                       value={formData.batch_id} 
                       onChange={e => setFormData({ ...formData, batch_id: e.target.value })} 
                       className="form-input"
+                      required
                     >
                       {batches.map(b => (
                         <option key={b.batch_id} value={b.batch_id}>
@@ -305,11 +300,11 @@ export const AdminDashboard = () => {
                     </select>
                   </div>
 
-                  {/* Allocated Weight field (OrderedItem.allocated_weight) */}
                   <div className="form-group">
                     <label>ALLOCATED WEIGHT (KG)</label>
                     <input 
                       type="number" 
+                      step="0.01"
                       placeholder="e.g. 50" 
                       value={formData.allocated_weight} 
                       onChange={e => setFormData({ ...formData, allocated_weight: e.target.value })} 
@@ -318,12 +313,13 @@ export const AdminDashboard = () => {
                     />
                   </div>
 
-                  <button type="submit" className="btn-create-order">+ SAVE ORDER TO DATABASE</button>
+                  <button type="submit" disabled={loading} className="btn-create-order">
+                    {loading ? 'SAVING TO DATABASE...' : '+ SAVE ORDER TO DATABASE'}
+                  </button>
                 </form>
               </div>
             </div>
           )}
-
         </main>
       </div>
     </div>
