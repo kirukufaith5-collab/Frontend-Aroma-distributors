@@ -1,156 +1,96 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import API from '../services/api.js';
+import API from '../services/api';
 
 export const AdminDashboard = () => {
-  const navigate = useNavigate();
+  // Form State Variable Bindings
+  const [clientInput, setClientInput] = useState('');
+  const [batchInput, setBatchInput] = useState('');
+  const [allocatedWeight, setAllocatedWeight] = useState('');
 
-  const [activeTab, setActiveTab] = useState('orders');
-
-  const [clients, setClients] = useState([]);
-  const [batches, setBatches] = useState([]);
+  // Dashboard Data State
   const [orders, setOrders] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('orders'); // 'orders', 'batches', or 'create'
 
-  // Local history states for typed inputs
-  const [clientHistory, setClientHistory] = useState(() => {
-    return JSON.parse(localStorage.getItem('client_history') || '[]');
-  });
-  const [batchHistory, setBatchHistory] = useState(() => {
-    return JSON.parse(localStorage.getItem('batch_history') || '[]');
-  });
-
-  // Free-text form state (Users can type names/IDs directly)
-  const [formData, setFormData] = useState({
-    clientInput: '',
-    batchInput: '',
-    allocated_weight: ''
-  });
-
-  // Fetch initial data from Flask
-  const fetchInitialData = async () => {
+  // Fetch Dashboard Data from Backend API
+  const fetchData = async () => {
     try {
-      const [clientsRes, batchesRes, ordersRes] = await Promise.all([
-        API.get('/admin/clients'),
-        API.get('/admin/batches'),
-        API.get('/admin/orders')
+      setLoading(true);
+      const [ordersRes, batchesRes] = await Promise.all([
+        API.get('/admin/orders'),
+        API.get('/admin/batches')
       ]);
 
-      setClients(clientsRes.data || []);
-      setBatches(batchesRes.data || []);
       setOrders(ordersRes.data || []);
+      setBatches(batchesRes.data || []);
     } catch (err) {
-      console.error('Failed to communicate with Flask backend:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  const handleBatchStatus = async (batch_id, status) => {
-    try {
-      await API.put(`/admin/batches/${batch_id}/status`, { status });
-      setBatches(prev => prev.map(b => b.batch_id === batch_id ? { ...b, status } : b));
-    } catch (err) {
-      console.error('Failed to update batch status:', err);
-    }
-  };
-
-  const handleCloseOrder = async (order_id) => {
-    try {
-      await API.post(`/admin/orders/${order_id}/close`);
-      setOrders(prev => prev.map(o => o.order_id === order_id ? { ...o, status: 'Closed' } : o));
-    } catch (err) {
-      console.error('Failed to close order:', err);
-    }
-  };
-
-  const handleCreateOrder = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    // Resolve client input to an existing client_id or match typed text
-    const matchedClient = clients.find(
-      c => String(c.client_id) === formData.clientInput.trim() || 
-           c.company_name.toLowerCase() === formData.clientInput.trim().toLowerCase()
-    );
-    
-    // Default to matched ID or parse raw typed input if numerical
-    const resolvedClientId = matchedClient ? matchedClient.client_id : Number(formData.clientInput) || 1;
-
-    // Resolve batch input
-    const matchedBatch = batches.find(
-      b => String(b.batch_id) === formData.batchInput.trim() ||
-           b.product_type.toLowerCase() === formData.batchInput.trim().toLowerCase()
-    );
-    const resolvedBatchId = matchedBatch ? matchedBatch.batch_id : Number(formData.batchInput) || 101;
-
-    // Save inputs to browser history if new
-    if (formData.clientInput && !clientHistory.includes(formData.clientInput)) {
-      const updatedHistory = [formData.clientInput, ...clientHistory].slice(0, 10);
-      setClientHistory(updatedHistory);
-      localStorage.setItem('client_history', JSON.stringify(updatedHistory));
-    }
-
-    if (formData.batchInput && !batchHistory.includes(formData.batchInput)) {
-      const updatedHistory = [formData.batchInput, ...batchHistory].slice(0, 10);
-      setBatchHistory(updatedHistory);
-      localStorage.setItem('batch_history', JSON.stringify(updatedHistory));
-    }
-
-    const payload = {
-      client_id: resolvedClientId,
-      created_by_admin_id: 1,
-      batch_id: resolvedBatchId,
-      allocated_weight: Number(formData.allocated_weight)
-    };
-
-    try {
-      const response = await API.post('/admin/orders', payload);
-      
-      if (response.status === 201) {
-        // Fetch fresh database state
-        const freshOrders = await API.get('/admin/orders');
-        setOrders(freshOrders.data);
-
-        // Reset form
-        setFormData({ clientInput: '', batchInput: '', allocated_weight: '' });
-        setActiveTab('orders');
-      }
-    } catch (err) {
-      console.error("Database Save Failed:", err.response?.data || err.message);
-      alert("Failed to write order to backend database.");
+      console.error('Failed to load admin dashboard data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Submit New Client Order
+  const handleCreateOrder = async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      client_id: clientInput,
+      batch_id: batchInput,
+      allocated_weight: parseFloat(allocatedWeight) || 0
+    };
+
+    try {
+      const res = await API.post('/admin/orders', payload);
+      alert(res.data?.message || 'Order successfully saved to database!');
+      
+      // Clear inputs
+      setClientInput('');
+      setBatchInput('');
+      setAllocatedWeight('');
+
+      // Refresh list & redirect to orders view
+      fetchData();
+      setActiveTab('orders');
+    } catch (err) {
+      console.error('Order creation error:', err);
+      alert(err.response?.data?.message || 'Failed to save order to database.');
+    }
   };
 
-  const pendingBatchesCount = batches.filter(b => b.status === 'Available' || b.status === 'PENDING').length;
-  const activeOrdersCount = orders.filter(o => o.status === 'Pending' || o.status === 'ACTIVE').length;
+  // Compute Metrics for Upper Summary Cards
+  const totalOrdersCount = orders.length;
+  const activeOrdersCount = orders.filter(o => o.status !== 'Closed' && o.status !== 'Rejected').length;
+  const pendingBatchesCount = batches.filter(b => b.status === 'Pending').length;
 
   return (
     <div className="admin-container">
+      {/* 1. BRAND HEADER & NAVBAR */}
       <header className="admin-header">
         <div className="admin-brand">
-          <span>🌱 Aroma-Distributors</span>
+        🌱 AROMA-DISTRIBUTORS
           <span className="admin-badge">ADMIN</span>
         </div>
-        <button className="btn-logout" onClick={handleLogout}>[→ LOGOUT]</button>
+        <button className="admin-logout-btn btn-logout">
+          [&rarr; LOGOUT]
+        </button>
       </header>
 
+      {/* 2. MAIN LAYOUT (SIDEBAR + CONTENT) */}
       <div className="admin-layout">
+        {/* Left Sidebar Panel */}
         <aside className="admin-sidebar">
+          {/* Operations Summary Card */}
           <div className="summary-card">
-            <small className="summary-title">OPERATIONS SUMMARY</small>
+            <span className="summary-title">OPERATIONS SUMMARY</span>
             <div className="summary-row">
               <span>Pending batches</span>
-              <strong className="text-orange">{pendingBatchesCount}</strong>
+              <strong>{pendingBatchesCount}</strong>
             </div>
             <div className="summary-row">
               <span>Active orders</span>
@@ -158,201 +98,159 @@ export const AdminDashboard = () => {
             </div>
           </div>
 
+          {/* Sidebar Navigation */}
           <nav className="admin-nav">
             <button 
-              className={`nav-item ${activeTab === 'receive' ? 'active' : ''}`} 
-              onClick={() => setActiveTab('receive')}
+              className={`nav-btn nav-item ${activeTab === 'batches' ? 'active nav-item-active' : ''}`}
+              onClick={() => setActiveTab('batches')}
             >
-              PRODUCT BATCHES <span className="counter-badge">{pendingBatchesCount}</span>
+              <span>PRODUCT BATCHES</span>
+              <span className="nav-badge counter-badge">{batches.length}</span>
             </button>
+
             <button 
-              className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`} 
+              className={`nav-btn nav-item ${activeTab === 'orders' ? 'active nav-item-active' : ''}`}
               onClick={() => setActiveTab('orders')}
             >
               ALL ORDERS
             </button>
+
             <button 
-              className={`nav-item ${activeTab === 'create' ? 'active' : ''}`} 
+              className={`nav-btn nav-item ${activeTab === 'create' ? 'active nav-item-active' : ''}`}
               onClick={() => setActiveTab('create')}
             >
-              + CREATE ORDER
+            CREATE ORDER
             </button>
           </nav>
         </aside>
 
+        {/* Right Main Panel */}
         <main className="admin-main">
-          {/* TAB 1: BATCHES */}
-          {activeTab === 'receive' && (
+          {activeTab === 'create' ? (
+            /* CREATE ORDER FORM VIEW */
             <div>
-              <h1 className="view-header">PRODUCT BATCHES</h1>
-              <p className="view-desc">Batches registered by farmers available for order allocation.</p>
-              <div className="table-wrapper">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>BATCH ID</th>
-                      <th>FARMER</th>
-                      <th>PRODUCT TYPE</th>
-                      <th>WEIGHT (KG)</th>
-                      <th>STATUS</th>
-                      <th>ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {batches.map(b => (
-                      <tr key={b.batch_id}>
-                        <td>#{b.batch_id}</td>
-                        <td><strong>{b.farmer_name || `Farmer #${b.farmer_id}`}</strong></td>
-                        <td><strong>{b.product_type}</strong></td>
-                        <td>{b.weight} kg</td>
-                        <td><span className={`status-badge ${b.status?.toLowerCase()}`}>{b.status}</span></td>
-                        <td>
-                          {b.status === 'Available' || b.status === 'PENDING' ? (
-                            <div className="action-buttons">
-                              <button className="btn-approve" onClick={() => handleBatchStatus(b.batch_id, 'Approved')}>✔ APPROVE</button>
-                              <button className="btn-reject" onClick={() => handleBatchStatus(b.batch_id, 'Rejected')}>✖ REJECT</button>
-                            </div>
-                          ) : (
-                            <span className="no-action">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <h1 className="view-header view-title">CREATE CLIENT ORDER</h1>
+              <p className="view-desc">Allocate available inventory batches to client accounts.</p>
+
+              <div className="form-card create-order-card">
+                <form onSubmit={handleCreateOrder}>
+                  <div className="form-group">
+                    <label className="form-label admin-label">CLIENT NAME OR ID</label>
+                    <input 
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. 1 or Client Name"
+                      value={clientInput}
+                      onChange={(e) => setClientInput(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label admin-label">PRODUCT BATCH OR ID</label>
+                    <input 
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. 2 or Honey"
+                      value={batchInput}
+                      onChange={(e) => setBatchInput(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label admin-label">ALLOCATED WEIGHT (KG)</label>
+                    <input 
+                      type="number"
+                      step="0.01"
+                      className="form-input"
+                      placeholder="e.g. 50"
+                      value={allocatedWeight}
+                      onChange={(e) => setAllocatedWeight(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <button type="submit" className="btn-bright-green btn-submit btn-submit-batch">
+                    SAVE TO DATABASE
+                  </button>
+                </form>
               </div>
             </div>
-          )}
-
-          {/* TAB 2: ORDERS */}
-          {activeTab === 'orders' && (
+          ) : (
+            /* ALL ORDERS LEDGER VIEW */
             <div>
-              <h1 className="view-header">CLIENT ORDERS</h1>
-              <p className="view-desc">Master ledger from client_orders and ordered_items tables.</p>
-              
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <h1 className="view-header view-title">CLIENT ORDERS</h1>
+                <p className="view-desc">Master ledger from client_orders and ordered_items tables.</p>
+              </div>
+
+              {/* Metrics Summary Top Bar */}
               <div className="orders-summary-bar">
                 <div className="summary-col">
                   <small>TOTAL ORDERS</small>
-                  <h2>{orders.length}</h2>
+                  <h2>{totalOrdersCount}</h2>
                 </div>
                 <div className="summary-col">
                   <small>ACTIVE / PENDING</small>
                   <h2>{activeOrdersCount}</h2>
                 </div>
+                <div className="summary-col">
+                  <small>PENDING BATCHES</small>
+                  <h2>{pendingBatchesCount}</h2>
+                </div>
               </div>
 
-              <div className="table-wrapper">
-                <table className="admin-table">
-                  <thead>
+              {/* Orders Data Table */}
+              <div className="table-wrapper table-container">
+                <table className="admin-table data-table custom-table">
+                  <thead className="custom-table-head">
                     <tr>
-                      <th>ORDER ID</th>
-                      <th>CLIENT</th>
-                      <th>PRODUCT</th>
-                      <th>ALLOCATED WEIGHT (KG)</th>
-                      <th>STATUS</th>
-                      <th>ACTIONS</th>
+                      <th className="custom-table-th">ORDER ID</th>
+                      <th className="custom-table-th">CLIENT</th>
+                      <th className="custom-table-th">PRODUCT</th>
+                      <th className="custom-table-th">ALLOCATED WEIGHT (KG)</th>
+                      <th className="custom-table-th">STATUS</th>
+                      <th className="custom-table-th">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map(o => (
-                      <tr key={o.order_id}>
-                        <td>#{o.order_id}</td>
-                        <td><strong>{o.client_name}</strong></td>
-                        <td>{o.product_type}</td>
-                        <td><strong>{o.allocated_weight} kg</strong></td>
-                        <td>
-                          <span className={`order-status ${o.status?.toLowerCase()}`}>{o.status}</span>
-                        </td>
-                        <td>
-                          {o.status === 'Pending' || o.status === 'ACTIVE' ? (
-                            <button className="btn-close-order" onClick={() => handleCloseOrder(o.order_id)}>CLOSE ORDER</button>
-                          ) : (
-                            <span className="settled-text">Closed</span>
-                          )}
+                    {loading ? (
+                      <tr>
+                        <td colSpan="6" className="custom-table-td" style={{ textAlign: 'center' }}>
+                          Loading order ledger...
                         </td>
                       </tr>
-                    ))}
+                    ) : orders.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="custom-table-td" style={{ textAlign: 'center', color: '#78716C' }}>
+                          No orders registered in system.
+                        </td>
+                      </tr>
+                    ) : (
+                      orders.map((o) => (
+                        <tr key={o.order_id}>
+                          <td className="custom-table-td font-mono">#{o.order_id}</td>
+                          <td className="custom-table-td">{o.client_name || o.client_id || 'Unknown Client'}</td>
+                          <td className="custom-table-td">{o.product_type || 'Produce'}</td>
+                          <td className="custom-table-td">{o.allocated_weight || 0}</td>
+                          <td className="custom-table-td">
+                            <span className={`status-badge badge order-status ${
+                              (o.status || 'approved').toLowerCase()
+                            }`}>
+                              {o.status || 'Approved'}
+                            </span>
+                          </td>
+                          <td className="custom-table-td">
+                            <button className="btn-action-close btn-close-order">
+                              CLOSE ORDER
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: CREATE ORDER (INPUT + HISTORY DATALIST) */}
-          {activeTab === 'create' && (
-            <div>
-              <h1 className="view-header">CREATE CLIENT ORDER</h1>
-              <p className="view-desc">Type client and batch names directly or pick from recent typed history.</p>
-              
-              <div className="create-order-card">
-                <form onSubmit={handleCreateOrder}>
-                  
-                  {/* Client Input Field */}
-                  <div className="form-group">
-                    <label>CLIENT NAME OR ID</label>
-                    <input
-                      type="text"
-                      list="client-suggestions"
-                      placeholder="Type client name or ID (e.g. Fresh Mart)"
-                      value={formData.clientInput}
-                      onChange={e => setFormData({ ...formData, clientInput: e.target.value })}
-                      required
-                      className="form-input"
-                    />
-                    <datalist id="client-suggestions">
-                      {/* Show recently typed entries */}
-                      {clientHistory.map((item, idx) => (
-                        <option key={`hist-c-${idx}`} value={item} label="Recent entry" />
-                      ))}
-                      {/* Show backend database options */}
-                      {clients.map(c => (
-                        <option key={c.client_id} value={c.company_name} label={`ID: #${c.client_id}`} />
-                      ))}
-                    </datalist>
-                  </div>
-
-                  {/* Batch Input Field */}
-                  <div className="form-group">
-                    <label>PRODUCT BATCH OR ID</label>
-                    <input
-                      type="text"
-                      list="batch-suggestions"
-                      placeholder="Type product name or Batch ID (e.g. Tomatoes or 101)"
-                      value={formData.batchInput}
-                      onChange={e => setFormData({ ...formData, batchInput: e.target.value })}
-                      required
-                      className="form-input"
-                    />
-                    <datalist id="batch-suggestions">
-                      {/* Show recently typed entries */}
-                      {batchHistory.map((item, idx) => (
-                        <option key={`hist-b-${idx}`} value={item} label="Recent entry" />
-                      ))}
-                      {/* Show backend database options */}
-                      {batches.map(b => (
-                        <option key={b.batch_id} value={`${b.batch_id}`} label={`${b.product_type} (${b.weight}kg)`} />
-                      ))}
-                    </datalist>
-                  </div>
-
-                  {/* Allocated Weight Field */}
-                  <div className="form-group">
-                    <label>ALLOCATED WEIGHT (KG)</label>
-                    <input 
-                      type="number" 
-                      step="0.01"
-                      placeholder="e.g. 50" 
-                      value={formData.allocated_weight} 
-                      onChange={e => setFormData({ ...formData, allocated_weight: e.target.value })} 
-                      required 
-                      className="form-input" 
-                    />
-                  </div>
-
-                  <button type="submit" disabled={loading} className="btn-create-order">
-                    {loading ? 'SAVING TO DATABASE...' : '+ SAVE ORDER TO DATABASE'}
-                  </button>
-                </form>
               </div>
             </div>
           )}
@@ -361,3 +259,5 @@ export const AdminDashboard = () => {
     </div>
   );
 };
+
+export default AdminDashboard;

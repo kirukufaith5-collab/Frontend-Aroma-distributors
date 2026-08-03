@@ -8,55 +8,75 @@ const FarmerDashboard = () => {
   // Navigation tab state: 'batches' | 'register'
   const [activeTab, setActiveTab] = useState('batches');
 
-  // Batches state
-  const [batches, setBatches] = useState([
-    { batch_id: 101, product_type: 'Tomatoes', weight: 45.5, status: 'Available' },
-    { batch_id: 102, product_type: 'Potatoes', weight: 30.0, status: 'Available' },
-    { batch_id: 103, product_type: 'Butternut', weight: 22.8, status: 'Pending' }
-  ]);
+  // Batches state & Loading indicator
+  const [batches, setBatches] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // New batch form state matching ProductBatch schema
+  // New batch form state
   const [formData, setFormData] = useState({
-    farmer_id: '1', // Hardcoded or pulled from auth user context
     product_type: 'Tomatoes',
     weight: ''
   });
 
   // Fetch farmer's own batches from backend
+  const fetchFarmerBatches = async () => {
+    try {
+      setLoading(true);
+      
+      // Try fetching via /farmer/batches
+      const res = await API.get('/farmer/batches');
+      if (Array.isArray(res.data)) {
+        setBatches(res.data);
+      } else {
+        setBatches([]);
+      }
+    } catch (err) {
+      console.error('Error loading farmer batches:', err);
+      // Fallback default state if API fails
+      setBatches([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    API.get('/farmer/batches')
-      .then(res => setBatches(Array.isArray(res.data) ? res.data : []))
-      .catch(err => console.log('Offline mode: using sample farmer batches', err));
+    fetchFarmerBatches();
   }, []);
 
-  // Submit new product batch
+  // Submit new product batch to Flask API
   const handleRegisterBatch = async (e) => {
     e.preventDefault();
 
-    const newBatchUI = {
-      batch_id: batches.length + 101,
-      product_type: formData.product_type,
-      weight: Number(formData.weight),
-      status: 'Pending'
-    };
+    if (!formData.weight || Number(formData.weight) <= 0) {
+      alert('Please enter a valid weight.');
+      return;
+    }
 
-    // Update UI state immediately
-    setBatches([newBatchUI, ...batches]);
-    setFormData({ ...formData, weight: '' });
-    setActiveTab('batches');
-
-    // Post to Flask backend
     try {
+      // Get logged-in user ID from localStorage if stored during login
+      const storedUserId = localStorage.getItem('user_id');
+
       const payload = {
-        farmer_id: Number(formData.farmer_id),
+        farmer_id: storedUserId ? Number(storedUserId) : undefined,
         product_type: formData.product_type,
         weight: Number(formData.weight)
       };
 
-      await API.post('/farmer/batches', payload);
-      console.log("Batch successfully registered in database!");
+      // 1. Post to Flask backend first
+      const res = await API.post('/farmer/batches', payload);
+
+      alert(res.data?.message || 'Batch successfully registered!');
+
+      // 2. Clear inputs and redirect tab
+      setFormData({ product_type: 'Tomatoes', weight: '' });
+      setActiveTab('batches');
+
+      // 3. Re-fetch fresh list from database
+      fetchFarmerBatches();
+
     } catch (err) {
-      console.log("Backend offline or endpoint missing. Saved locally.", err);
+      console.error('Failed to submit batch:', err);
+      alert(err.response?.data?.message || 'Failed to submit batch. Check if you are logged in.');
     }
   };
 
@@ -67,7 +87,9 @@ const FarmerDashboard = () => {
 
   // Metrics
   const totalWeight = batches.reduce((acc, b) => acc + Number(b.weight || 0), 0);
-  const pendingCount = batches.filter(b => b.status === 'Pending' || b.status === 'PENDING').length;
+  const pendingCount = batches.filter(
+    b => (b.status || '').toLowerCase() === 'pending'
+  ).length;
 
   return (
     <div className="farmer-container">
@@ -131,18 +153,32 @@ const FarmerDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {batches.map(b => (
-                      <tr key={b.batch_id}>
-                        <td>#{b.batch_id}</td>
-                        <td><strong>{b.product_type}</strong></td>
-                        <td>{b.weight} kg</td>
-                        <td>
-                          <span className={`status-badge ${(b.status || 'pending').toLowerCase()}`}>
-                            {b.status}
-                          </span>
+                    {loading ? (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '1rem' }}>
+                          Loading batches...
                         </td>
                       </tr>
-                    ))}
+                    ) : batches.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '1rem', color: '#78716C' }}>
+                          No batches registered yet. Click "+ REGISTER NEW BATCH" to add one.
+                        </td>
+                      </tr>
+                    ) : (
+                      batches.map(b => (
+                        <tr key={b.batch_id}>
+                          <td>#{b.batch_id}</td>
+                          <td><strong>{b.product_type}</strong></td>
+                          <td>{b.weight} kg</td>
+                          <td>
+                            <span className={`status-badge ${(b.status || 'pending').toLowerCase()}`}>
+                              {b.status || 'Pending'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -198,5 +234,4 @@ const FarmerDashboard = () => {
   );
 };
 
-// Default export at the bottom outside the component scope
 export default FarmerDashboard;

@@ -1,43 +1,72 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API from '../services/api.js';
 
 export const Login = () => {
   const navigate = useNavigate();
 
-  // Controlled state for Farmer form inputs
   const [farmerEmail, setFarmerEmail] = useState('');
   const [farmerPassword, setFarmerPassword] = useState('');
+  const [farmerError, setFarmerError] = useState('');
 
-  // Controlled state for Admin form inputs
-  const [adminUsername, setAdminUsername] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [adminError, setAdminError] = useState('');
 
-  const handleFarmerLogin = (e) => {
-    e.preventDefault(); // Prevents page reload
-    
-    // Save simulated user session to localStorage
-    localStorage.setItem('user', JSON.stringify({ id: 2, farm_name: 'GREEN ACRES FARM', role: 'farmer' }));
-    
-    // Clear the form fields
-    setFarmerEmail('');
-    setFarmerPassword('');
+  const handleFarmerLogin = async (e) => {
+    e.preventDefault();
+    setFarmerError('');
 
-    // Navigate to the Farmer Dashboard
-    navigate('/farmer');
+    try {
+      const res = await API.post('/auth/login', {
+        email: farmerEmail,
+        password: farmerPassword,
+      });
+
+      const token = res.data?.token;
+      const user = res.data?.user;
+
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user_id', user.id);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        setFarmerEmail('');
+        setFarmerPassword('');
+        navigate('/farmer');
+      }
+    } catch (err) {
+      console.error('Farmer Login Error:', err);
+      setFarmerError(err.response?.data?.message || 'Invalid email or password.');
+    }
   };
 
-  const handleAdminLogin = (e) => {
-    e.preventDefault(); // Prevents page reload
-    
-    // Save simulated user session to localStorage
-    localStorage.setItem('user', JSON.stringify({ id: 1, role: 'admin' }));
-    
-    // Clear the form fields
-    setAdminUsername('');
-    setAdminPassword('');
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setAdminError('');
 
-    // Navigate to the Admin Dashboard
-    navigate('/admin');
+    try {
+      const res = await API.post('/auth/login', {
+        email: adminEmail,
+        password: adminPassword,
+      });
+
+      const token = res.data?.token;
+      const user = res.data?.user;
+
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user_id', user.id);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        setAdminEmail('');
+        setAdminPassword('');
+        navigate('/admin');
+      }
+    } catch (err) {
+      console.error('Admin Login Error:', err);
+      setAdminError(err.response?.data?.message || 'Invalid admin credentials.');
+    }
   };
 
   return (
@@ -52,14 +81,15 @@ export const Login = () => {
       </div>
 
       <div className="login-layout">
-        {/* Left Column: Farmer Login */}
         <div className="farmer-login-card">
           <h2>FARMER LOGIN</h2>
-          <p className="card-subtitle">Access your batch submissions, delivery status, and payment records.</p>
+          <p className="card-subtitle">Access batch submissions, delivery status, and records.</p>
           
+          {farmerError && <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{farmerError}</p>}
+
           <form onSubmit={handleFarmerLogin}>
             <div className="form-group">
-              <label className="form-label">SELECT ACCOUNT / EMAIL</label>
+              <label className="form-label">EMAIL</label>
               <input 
                 type="email" 
                 placeholder="e.g. farmer@example.com"
@@ -84,23 +114,22 @@ export const Login = () => {
 
             <button type="submit" className="btn-bright-green">SIGN IN →</button>
           </form>
-
-          <p className="forgot-link">Forgot password? <a href="#reset">Reset here</a></p>
         </div>
 
-        {/* Right Column: Admin Panel */}
         <div className="admin-login-card">
           <h2>ADMIN CONTROL PANEL</h2>
-          <p className="card-subtitle admin-sub">Aroma Distributors master dashboard — manage orders and oversee payouts.</p>
+          <p className="card-subtitle admin-sub">Aroma Distributors master dashboard.</p>
           
+          {adminError && <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{adminError}</p>}
+
           <form onSubmit={handleAdminLogin}>
             <div className="form-group">
-              <label className="form-label admin-label">ADMIN USERNAME / EMAIL</label>
+              <label className="form-label admin-label">ADMIN EMAIL</label>
               <input 
-                type="text" 
-                placeholder="e.g. admin_username"
-                value={adminUsername} 
-                onChange={(e) => setAdminUsername(e.target.value)} 
+                type="email" 
+                placeholder="e.g. admin@example.com"
+                value={adminEmail} 
+                onChange={(e) => setAdminEmail(e.target.value)} 
                 className="admin-input" 
                 required 
               />
@@ -125,3 +154,5 @@ export const Login = () => {
     </div>
   );
 };
+
+export default Login;
